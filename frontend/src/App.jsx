@@ -4,7 +4,8 @@ import ProductList from './components/ProductList.jsx';
 import PaymentModal from './components/PaymentModal.jsx';
 import { useTelegramWebApp } from './hooks/useTelegramWebApp.js';
 
-const API_BASE = '/api';
+// Dynamic API URL for Vercel/local/Render
+const API_BASE = import.meta.env.VITE_API_URL || 'https://cardshoop.onrender.com/api';
 
 export default function App() {
   const { webApp, user, initData } = useTelegramWebApp();
@@ -13,32 +14,45 @@ export default function App() {
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [orderSuccess, setOrderSuccess] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Sprawdz czy powrot ze statusem=paid (CryptoBot callback)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('status') === 'paid') {
-      const orderId = params.get('order');
-      setOrderSuccess({ orderId });
+  // Load products
+  const fetchProducts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/products`);
+      const data = await res.json();
+      if (data.ok) {
+        setProducts(data.result);
+      } else {
+        setError('Nie udało się pobrać listy produktów.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Błąd połączenia z serwerem sklepu.');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchProducts();
   }, []);
 
-  // Zaladuj produkty
-  useEffect(() => {
-    fetch(API_BASE + '/products')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.ok) setProducts(data.result);
-        else setError('Blad ladowania produktow');
-      })
-      .catch(() => setError('Blad polaczenia z serwerem'))
-      .finally(() => setLoading(false));
-  }, []);
+  const handleSelectProduct = (product) => {
+    webApp?.HapticFeedback?.impactOccurred('light');
+    setSelectedProduct(product);
+  };
 
   const handleBuyStars = async (product) => {
-    if (!webApp) return alert('Otworz sklep w aplikacji Telegram');
+    if (!webApp) {
+      alert('Otwórz sklep w aplikacji Telegram, aby dokonać zakupu.');
+      return;
+    }
+
     try {
-      const res = await fetch(API_BASE + '/invoices/stars', {
+      const res = await fetch(`${API_BASE}/invoices/stars`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -46,82 +60,116 @@ export default function App() {
         },
         body: JSON.stringify({ product_id: product.id }),
       });
+
       const data = await res.json();
-      if (!data.ok) throw new Error(data.error);
-      // Otworz native invoice Telegrama
+      if (!data.ok) throw new Error(data.error || 'Błąd tworzenia faktury');
+
+      // Open native Telegram Stars Invoice
       webApp.openInvoice(data.invoice_link, (status) => {
         setSelectedProduct(null);
         if (status === 'paid') {
-          setOrderSuccess({ orderId: data.order_id });
           webApp.HapticFeedback?.notificationOccurred('success');
-        } else if (status === 'failed' || status === 'cancelled') {
-          webApp.showAlert('Platnosc anulowana lub nieudana.');
+          setOrderSuccess({
+            orderId: data.order_id,
+            productName: product.name,
+          });
+        } else if (status === 'failed') {
+          webApp.HapticFeedback?.notificationOccurred('error');
+          webApp.showAlert('Płatność nie powiodła się.');
         }
       });
     } catch (err) {
-      webApp.showAlert('Blad: ' + err.message);
+      webApp.HapticFeedback?.notificationOccurred('error');
+      webApp.showAlert('Błąd: ' + err.message);
     }
   };
 
-  const handleBuyCrypto = async (product, asset) => {
-    if (!webApp) return alert('Otworz sklep w aplikacji Telegram');
-    try {
-      const res = await fetch(API_BASE + '/invoices/crypto', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-telegram-init-data': initData,
-        },
-        body: JSON.stringify({ product_id: product.id, asset }),
-      });
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.error);
-      setSelectedProduct(null);
-      webApp.openLink(data.pay_url);
-    } catch (err) {
-      webApp.showAlert('Blad: ' + err.message);
-    }
-  };
-
+  // Success screen
   if (orderSuccess) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center" style={{ backgroundColor: 'var(--tg-theme-bg-color)' }}>
-        <div className="text-6xl mb-4">✅</div>
-        <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--tg-theme-text-color)' }}>Dziekujemy za zakup!</h2>
-        <p className="mb-6" style={{ color: 'var(--tg-theme-hint-color)' }}>Dane konta zostaly wyslane do Ciebie w wiadomosci prywatnej przez bota.</p>
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white animate-fade-in">
+        <div className="w-20 h-20 rounded-3xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-4xl mb-5 shadow-lg shadow-emerald-500/20 animate-bounce">
+          ✓
+        </div>
+        <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 mb-2">
+          Płatność zatwierdzona!
+        </span>
+        <h2 className="text-2xl font-extrabold mb-2 tracking-tight">Dziękujemy za zakup!</h2>
+        <p className="text-sm text-slate-400 max-w-xs mb-6 leading-relaxed">
+          Konto <strong className="text-slate-200">{orderSuccess.productName}</strong> zostało przypisane. Bot wysłał dane do logowania w wiadomości prywatnej!
+        </p>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 w-full max-w-xs mb-6 text-xs text-left space-y-2">
+          <div className="flex justify-between text-slate-400">
+            <span>Numer zamówienia:</span>
+            <span className="font-mono text-slate-200 font-bold">#{orderSuccess.orderId}</span>
+          </div>
+          <div className="flex justify-between text-slate-400">
+            <span>Metoda:</span>
+            <span className="text-amber-400 font-bold">⭐ Telegram Stars</span>
+          </div>
+          <div className="flex justify-between text-slate-400">
+            <span>Status:</span>
+            <span className="text-emerald-400 font-bold">Zrealizowane</span>
+          </div>
+        </div>
+
         <button
-          className="px-6 py-3 rounded-xl font-semibold transition-opacity hover:opacity-80"
-          style={{ backgroundColor: 'var(--tg-theme-button-color)', color: 'var(--tg-theme-button-text-color)' }}
-          onClick={() => setOrderSuccess(null)}
+          onClick={() => {
+            webApp?.HapticFeedback?.impactOccurred('medium');
+            setOrderSuccess(null);
+          }}
+          className="w-full max-w-xs py-3.5 px-6 rounded-xl font-bold bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-600/30"
         >
-          Wróc do sklepu
+          Wróć do sklepu
         </button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--tg-theme-bg-color)' }}>
-      <Header user={user} />
-      {loading && (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-10 w-10 border-2" style={{ borderColor: 'var(--tg-theme-button-color)', borderTopColor: 'transparent' }} />
-        </div>
-      )}
-      {error && (
-        <div className="m-4 p-4 rounded-xl text-center" style={{ backgroundColor: '#ff4444', color: '#fff' }}>
-          {error}
-        </div>
-      )}
-      {!loading && !error && (
-        <ProductList products={products} onSelect={setSelectedProduct} />
-      )}
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+      <Header
+        user={user}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
+
+      <main className="flex-1 max-w-2xl w-full mx-auto">
+        {loading && (
+          <div className="flex flex-col justify-center items-center h-72 gap-3">
+            <div className="w-10 h-10 border-3 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
+            <span className="text-xs font-semibold text-slate-400">Ładowanie ofert...</span>
+          </div>
+        )}
+
+        {error && (
+          <div className="m-4 p-5 rounded-2xl bg-red-950/60 border border-red-800/60 text-center">
+            <div className="text-2xl mb-1.5">⚠️</div>
+            <p className="text-xs font-semibold text-red-300 mb-3">{error}</p>
+            <button
+              onClick={fetchProducts}
+              className="px-4 py-2 bg-red-900/80 hover:bg-red-800 text-white text-xs font-bold rounded-xl transition-colors"
+            >
+              Spróbuj ponownie
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && (
+          <ProductList
+            products={products}
+            onSelect={handleSelectProduct}
+            searchQuery={searchQuery}
+          />
+        )}
+      </main>
+
       {selectedProduct && (
         <PaymentModal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
           onBuyStars={handleBuyStars}
-          onBuyCrypto={handleBuyCrypto}
         />
       )}
     </div>

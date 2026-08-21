@@ -1,102 +1,140 @@
 import React, { useState } from 'react';
-import { useTelegramWebApp } from '../hooks/useTelegramWebApp';
 
-function PaymentModal({ product, onClose, onPaymentComplete }) {
-  const { openInvoice, tg } = useTelegramWebApp();
+const BRAND_CONFIGS = {
+  Spotify: { logo: '/assets/spotify.svg', accent: '#1DB954', gradient: 'from-emerald-600 to-green-500' },
+  Netflix: { logo: '/assets/netflix.svg', accent: '#E50914', gradient: 'from-red-600 to-rose-500' },
+  YouTube: { logo: '/assets/youtube.svg', accent: '#FF0000', gradient: 'from-red-600 to-orange-500' },
+  Discord: { logo: '/assets/discord.svg', accent: '#5865F2', gradient: 'from-indigo-600 to-blue-500' },
+  default: { logo: null, accent: '#3B82F6', gradient: 'from-blue-600 to-indigo-500' },
+};
+
+export default function PaymentModal({ product, onClose, onBuyStars }) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const brand = BRAND_CONFIGS[product.category] || BRAND_CONFIGS.default;
 
-  const handleStarsPayment = async () => {
+  const handlePay = async () => {
     setLoading(true);
-    setError('');
-    
     try {
-      const initData = tg.initData;
-      if (!initData) {
-        throw new Error('Aplikacja musi byc uruchomiona wewnatrz Telegrama');
-      }
-
-      // 1. Zgloszenie do backendu o checi zakupu za gwiazdki
-      const response = await fetch('/api/invoices/stars', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-telegram-init-data': initData
-        },
-        body: JSON.stringify({ product_id: product.id })
-      });
-
-      const data = await response.json();
-      if (!data.ok) throw new Error(data.error || 'Blad generowania faktury');
-
-      // 2. Otwarcie natywnego okna Telegrama do zaplaty Starsami
-      openInvoice(data.invoice_link, (status) => {
-        if (status === 'paid') {
-          onPaymentComplete(data.order_id);
-        } else if (status === 'failed') {
-          setError('Platnosc odrzucona lub anulowana.');
-        } else {
-          onClose(); // cancelled lub inne
-        }
-      });
-    } catch (err) {
-      console.error(err);
-      setError(err.message || 'Wystapil problem z platnoscia');
+      await onBuyStars(product);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-      <div className="bg-[var(--tg-theme-bg-color)] w-full max-w-sm rounded-xl overflow-hidden flex flex-col shadow-xl">
-        <div className="p-4 border-b border-[var(--tg-theme-hint-color)] opacity-20">
-          <h3 className="text-xl font-bold text-[var(--tg-theme-text-color)] text-center">
-            Finalizacja zakupu
-          </h3>
-        </div>
-        
-        <div className="p-6 flex flex-col items-center">
-          <span className="text-4xl mb-3">{product.image_emoji}</span>
-          <h4 className="text-lg font-medium text-[var(--tg-theme-text-color)] text-center mb-1">
-            {product.name}
-          </h4>
-          <p className="text-sm text-[var(--tg-theme-hint-color)] text-center mb-6">
-            Płacisz całkowicie bezpiecznie przez natywny portfel Telegrama.
-          </p>
-          
-          {error && (
-            <div className="w-full bg-red-100 text-red-700 text-sm p-3 rounded-lg mb-4 text-center">
-              {error}
-            </div>
-          )}
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm transition-opacity"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !loading) onClose();
+      }}
+    >
+      <div
+        className="w-full max-w-md bg-slate-900 border-t sm:border border-slate-700/70 rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-slide-up text-slate-100 flex flex-col max-h-[92vh] overflow-y-auto no-scrollbar"
+        style={{
+          boxShadow: `0 -10px 40px -10px rgba(0,0,0,0.8), 0 0 50px -15px ${brand.accent}25`,
+        }}
+      >
+        {/* Modal Handle */}
+        <div className="w-12 h-1.5 bg-slate-700 rounded-full mx-auto mb-4 sm:hidden" />
 
-          <div className="w-full bg-[var(--tg-theme-secondary-bg-color)] rounded-lg p-4 mb-6 flex items-center justify-between">
-            <span className="text-[var(--tg-theme-text-color)]">Kwota do zapłaty:</span>
-            <div className="flex items-center gap-1 font-bold text-lg text-[var(--tg-theme-text-color)]">
-              <span>⭐️</span>
-              <span>{product.price_stars}</span>
+        {/* Header with Brand */}
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-slate-950 border border-slate-800 p-2.5 flex items-center justify-center shadow-inner">
+              {brand.logo ? (
+                <img src={brand.logo} alt={product.category} className="w-full h-full object-contain" />
+              ) : (
+                <span className="text-2xl">📦</span>
+              )}
+            </div>
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">
+                {product.category}
+              </span>
+              <h2 className="text-base font-bold text-white leading-tight">
+                {product.name}
+              </h2>
             </div>
           </div>
 
-          <button 
-            onClick={handleStarsPayment}
-            disabled={loading}
-            className="w-full py-3 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-lg font-medium text-lg disabled:opacity-70 mb-3 transition-opacity"
-          >
-            {loading ? 'Przetwarzanie...' : `Kup za ${product.price_stars} Stars`}
-          </button>
-
-          <button 
+          <button
             onClick={onClose}
-            className="w-full py-2 text-[var(--tg-theme-hint-color)] font-medium text-sm hover:underline"
+            disabled={loading}
+            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-sm font-bold transition-colors"
           >
-            Anuluj powrót do sklepu
+            ✕
           </button>
         </div>
+
+        {/* Product Details Box */}
+        <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 mb-4">
+          <p className="text-xs text-slate-300 leading-relaxed mb-3">
+            {product.description || 'Pełny dostęp do konta premium. Gwarancja bezproblemowego działania.'}
+          </p>
+
+          <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+            <span className="text-xs text-slate-400 font-medium">Do zapłaty:</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xl animate-star-glow">⭐</span>
+              <span className="text-xl font-extrabold text-amber-300 tracking-tight">
+                {product.price_stars}
+              </span>
+              <span className="text-xs font-bold text-amber-400/80">Stars</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Benefits list */}
+        <div className="space-y-2.5 mb-5 text-xs text-slate-300 bg-slate-800/30 p-3.5 rounded-xl border border-slate-800/50">
+          <div className="flex items-center gap-2.5">
+            <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">
+              ✓
+            </div>
+            <span>Natychmiastowe wysłanie danych na Twój czat z botem</span>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <div className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-[10px] font-bold">
+              ✓
+            </div>
+            <span>Bezpieczna oficjalna płatność Telegram Stars</span>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <div className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-bold">
+              ✓
+            </div>
+            <span>Gwarancja i wsparcie administratora</span>
+          </div>
+        </div>
+
+        {/* Main CTA Button */}
+        <button
+          onClick={handlePay}
+          disabled={loading}
+          className={`w-full py-3.5 px-4 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r ${brand.gradient} shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-3`}
+        >
+          {loading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span>Otwieranie płatności...</span>
+            </>
+          ) : (
+            <>
+              <span>Zapłać {product.price_stars} ⭐</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+              </svg>
+            </>
+          )}
+        </button>
+
+        <button
+          onClick={onClose}
+          disabled={loading}
+          className="w-full py-2 text-center text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+        >
+          Wróć do przeglądania
+        </button>
       </div>
     </div>
   );
 }
-
-export default PaymentModal;
