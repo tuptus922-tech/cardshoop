@@ -14,7 +14,7 @@ pool.on('error', (err) => {
 });
 
 // ------------------------------------------------
-// AES-256-GCM szyfrowanie (niezmienione)
+// AES-256-GCM szyfrowanie
 // ------------------------------------------------
 const ENCRYPTION_KEY = Buffer.from(process.env.ENCRYPTION_KEY, 'hex');
 
@@ -36,7 +36,6 @@ function decrypt(data) {
   return decipher.update(encrypted) + decipher.final('utf8');
 }
 
-// Pomocniczy wrapper
 async function query(text, params) {
   const client = await pool.connect();
   try {
@@ -47,9 +46,24 @@ async function query(text, params) {
 }
 
 // ------------------------------------------------
-// Helpers - wszystkie sa teraz async!
+// Helpers
 // ------------------------------------------------
 const helpers = {
+  // Tylko produkty, ktore maja dostepne konta (> 0) - DLA KLIENTOW W SKLEPIE
+  async getInStockProducts() {
+    const r = await query(`
+      SELECT p.*, COUNT(a.id)::int as stock
+      FROM products p
+      INNER JOIN accounts a ON a.product_id = p.id AND a.is_sold = false
+      WHERE p.is_active = 1
+      GROUP BY p.id
+      HAVING COUNT(a.id) > 0
+      ORDER BY p.category, p.price_stars
+    `);
+    return r.rows;
+  },
+
+  // Wszystkie produkty (dla panelu admina)
   async getAllProducts() {
     const r = await query('SELECT * FROM products WHERE is_active = 1 ORDER BY category, price_stars');
     return r.rows;
@@ -86,20 +100,6 @@ const helpers = {
     );
   },
 
-  async getOrderByCryptoBotId(invoiceId) {
-    const r = await query(
-      `SELECT o.*, p.name as product_name, p.category
-       FROM orders o JOIN products p ON o.product_id = p.id
-       WHERE o.cryptobot_invoice_id = $1`,
-      [invoiceId]
-    );
-    return r.rows[0] || null;
-  },
-
-  async setOrderCryptoBotId(orderId, invoiceId) {
-    await query('UPDATE orders SET cryptobot_invoice_id = $1 WHERE id = $2', [invoiceId, orderId]);
-  },
-
   async getAvailableAccount(productId) {
     const r = await query(
       'SELECT * FROM accounts WHERE product_id = $1 AND is_sold = false LIMIT 1',
@@ -121,7 +121,7 @@ const helpers = {
       'SELECT COUNT(*) as c FROM accounts WHERE product_id = $1 AND is_sold = false',
       [productId]
     );
-    return parseInt(r.rows[0].c);
+    return parseInt(r.rows[0].c, 10);
   },
 
   // Dodaj nowe konto (przez admina)

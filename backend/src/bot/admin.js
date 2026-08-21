@@ -13,6 +13,14 @@ function isAdmin(userId) {
   return getAdminIds().includes(String(userId));
 }
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 async function handleSeed(ctx) {
   if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnien.');
   try {
@@ -30,16 +38,16 @@ async function handleStock(ctx) {
     if (products.length === 0) {
       return ctx.reply('Brak produktów w bazie. Wpisz /seed aby dodać produkty startowe.');
     }
-    let msg = '📦 *Stan magazynu:*\n\n';
+    let msg = '📦 <b>Stan magazynu:</b>\n\n';
     for (const product of products) {
       const count = await helpers.getAvailableAccountCount(product.id);
       const emoji = count === 0 ? '🔴' : count < 3 ? '🟡' : '🟢';
-      msg += emoji + ' *' + product.name + '*\n   Kont dostępnych: *' + count + '*\n\n';
+      msg += `${emoji} <b>${escapeHtml(product.name)}</b>\n   Kont dostępnych: <b>${count}</b>\n\n`;
     }
-    await ctx.reply(msg, { parse_mode: 'Markdown' });
+    await ctx.reply(msg, { parse_mode: 'HTML' });
   } catch (err) {
     console.error('[Admin/stock]', err.message);
-    await ctx.reply('Blad: ' + err.message);
+    await ctx.reply('Błąd: ' + err.message);
   }
 }
 
@@ -47,19 +55,21 @@ async function handleOrders(ctx) {
   if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnien.');
   try {
     const orders = await helpers.getRecentOrders(10);
-    if (orders.length === 0) return ctx.reply('Brak zamowien.');
-    let msg = '🛒 *Ostatnie 10 zamowien:*\n\n';
+    if (orders.length === 0) return ctx.reply('Brak zamówień w bazie.');
+
+    let msg = '🛒 <b>Ostatnie 10 zamówień:</b>\n\n';
     for (const o of orders) {
       const icon = o.status === 'fulfilled' ? '✅' : o.status === 'pending' ? '⏳' : '❌';
-      const buyer = o.username ? '@' + o.username : 'ID:' + o.user_id;
-      msg += icon + ' #' + o.id + ' - ' + o.product_name + '\n'
-           + '   👤 ' + buyer + ' | ' + o.payment_method.toUpperCase() + ' ' + o.amount + ' ' + o.currency + '\n'
-           + '   ' + new Date(o.created_at).toLocaleString('pl-PL') + '\n\n';
+      const buyer = o.username ? '@' + o.username : 'ID: ' + o.user_id;
+      const date = new Date(o.created_at).toLocaleString('pl-PL', { timeZone: 'Europe/Warsaw' });
+      msg += `${icon} <b>#${o.id} - ${escapeHtml(o.product_name)}</b>\n`
+           + `   👤 ${escapeHtml(buyer)} | ⭐ ${o.amount} ${escapeHtml(o.currency)}\n`
+           + `   📅 ${date}\n\n`;
     }
-    await ctx.reply(msg, { parse_mode: 'Markdown' });
+    await ctx.reply(msg, { parse_mode: 'HTML' });
   } catch (err) {
     console.error('[Admin/orders]', err.message);
-    await ctx.reply('Blad: ' + err.message);
+    await ctx.reply('Błąd: ' + err.message);
   }
 }
 
@@ -89,7 +99,7 @@ async function handleProductCallback(ctx, productId) {
   if (!isAdmin(ctx.from.id)) return;
   adminState.set(ctx.from.id, { step: 'enter_email', product_id: Number(productId) });
   await ctx.answerCbQuery('Produkt wybrany!');
-  await ctx.reply('✅ Dobra! Teraz wpisz *email* konta (lub wpisz /cancel aby anulowac):', { parse_mode: 'Markdown' });
+  await ctx.reply('✅ Dobra! Teraz wpisz <b>email / login</b> konta (lub wpisz /cancel aby anulować):', { parse_mode: 'HTML' });
 }
 
 async function handleAdminText(ctx) {
@@ -106,18 +116,14 @@ async function handleAdminText(ctx) {
   }
 
   if (state.step === 'enter_email') {
-    if (!text.includes('@')) {
-      await ctx.reply('To nie wyglada jak email. Sprobuj jeszcze raz:');
-      return true;
-    }
     adminState.set(ctx.from.id, { ...state, step: 'enter_password', email: text });
-    await ctx.reply('🔒 Teraz wpisz *haslo* konta:', { parse_mode: 'Markdown' });
+    await ctx.reply('🔒 Teraz wpisz <b>hasło</b> konta:', { parse_mode: 'HTML' });
     return true;
   }
 
   if (state.step === 'enter_password') {
     adminState.set(ctx.from.id, { ...state, step: 'enter_note', password: text });
-    await ctx.reply('ℹ️ Opcjonalna *uwaga* (np. nie zmieniaj hasla).\nJesli brak - napisz /skip:', { parse_mode: 'Markdown' });
+    await ctx.reply('ℹ️ Opcjonalna <b>uwaga</b> (np. profil 2, nie zmieniać hasła).\nJeśli brak - napisz /skip:', { parse_mode: 'HTML' });
     return true;
   }
 
@@ -133,15 +139,15 @@ async function handleAdminText(ctx) {
       adminState.delete(ctx.from.id);
       const count = await helpers.getAvailableAccountCount(state.product_id);
       await ctx.reply(
-        '✅ *Konto dodane pomyslnie!*\n\n' +
-        '📧 Email: `' + state.email + '`\n' +
-        '🔒 Haslo: ukryte\n' +
-        '📦 Stan magazynu dla tego produktu: *' + count + ' kont*',
-        { parse_mode: 'Markdown' }
+        '✅ <b>Konto dodane pomyślnie!</b>\n\n' +
+        '📧 Login: <code>' + escapeHtml(state.email) + '</code>\n' +
+        '🔒 Hasło: [zapisane bezpiecznie]\n' +
+        '📦 Stan magazynu dla tego produktu: <b>' + count + ' kont</b>',
+        { parse_mode: 'HTML' }
       );
     } catch (err) {
       adminState.delete(ctx.from.id);
-      await ctx.reply('Blad zapisu: ' + err.message);
+      await ctx.reply('Błąd zapisu: ' + err.message);
     }
     return true;
   }
@@ -152,13 +158,13 @@ async function handleAdminText(ctx) {
 async function handleAdminHelp(ctx) {
   if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnien.');
   await ctx.reply(
-    '🛠 *Panel Admina CardShoop*\n\n' +
+    '🛠 <b>Panel Admina CardShoop</b>\n\n' +
     '/addaccount - Dodaj nowe konto do bazy\n' +
     '/stock - Sprawdz stan magazynu\n' +
     '/orders - Ostatnie 10 zamowien\n' +
-    '/seed - Dodaj bazowe produkty (Spotify, Netflix...)\n' +
+    '/seed - Dodaj bazowe produkty\n' +
     '/cancel - Anuluj biezaca operacje\n',
-    { parse_mode: 'Markdown' }
+    { parse_mode: 'HTML' }
   );
 }
 

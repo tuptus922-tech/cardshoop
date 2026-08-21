@@ -3,9 +3,10 @@ const express = require('express');
 const { helpers } = require('../db/database');
 const router = express.Router();
 
+// Zwraca TYLKO produkty, ktore maja dostepne konta (> 0 sztuk w magazynie)
 router.get('/', async (req, res) => {
   try {
-    const products = await helpers.getAllProducts();
+    const products = await helpers.getInStockProducts();
     res.json({ ok: true, result: products });
   } catch (err) {
     console.error('[API/products] GET error:', err.message);
