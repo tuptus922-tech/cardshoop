@@ -1,3 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 111 168">
-  <path fill="#E50914" d="M105.062 165.111l-36.42-99.308v99.308H42.36V2.89h26.282l36.42 99.308V2.89H131.34v162.221zM26.282 165.111H0V2.89h26.282z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <filter id="netflixShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.7"/>
+    </filter>
+  </defs>
+  <!-- Left column -->
+  <rect x="20" y="8" width="19" height="84" rx="1" fill="#B20710"/>
+  <!-- Right column -->
+  <rect x="61" y="8" width="19" height="84" rx="1" fill="#B20710"/>
+  <!-- Center diagonal ribbon with bright Netflix red and shadow -->
+  <path d="M20 8 H39 L80 92 H61 Z" fill="#E50914" filter="url(#netflixShadow)"/>
 </svg>
