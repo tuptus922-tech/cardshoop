@@ -3,7 +3,6 @@ require('dotenv').config();
 const { Pool } = require('pg');
 const crypto = require('crypto');
 
-// Polaczenie z Supabase przez DATABASE_URL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
@@ -13,9 +12,6 @@ pool.on('error', (err) => {
   console.error('[DB] Nieoczekiwany blad polaczenia:', err.message);
 });
 
-// ------------------------------------------------
-// AES-256-GCM szyfrowanie
-// ------------------------------------------------
 const ENCRYPTION_KEY = Buffer.from(process.env.ENCRYPTION_KEY, 'hex');
 
 function encrypt(text) {
@@ -45,11 +41,8 @@ async function query(text, params) {
   }
 }
 
-// ------------------------------------------------
-// Helpers
-// ------------------------------------------------
 const helpers = {
-  // Tylko produkty, ktore maja dostepne konta (> 0) - DLA KLIENTOW W SKLEPIE
+  // Tylko produkty z dostepnymi kontami (> 0)
   async getInStockProducts() {
     const r = await query(`
       SELECT p.*, COUNT(a.id)::int as stock
@@ -63,7 +56,6 @@ const helpers = {
     return r.rows;
   },
 
-  // Wszystkie produkty (dla panelu admina)
   async getAllProducts() {
     const r = await query('SELECT * FROM products WHERE is_active = 1 ORDER BY category, price_stars');
     return r.rows;
@@ -115,7 +107,6 @@ const helpers = {
     );
   },
 
-  // Ile kont dostepnych dla danego produktu
   async getAvailableAccountCount(productId) {
     const r = await query(
       'SELECT COUNT(*) as c FROM accounts WHERE product_id = $1 AND is_sold = false',
@@ -124,7 +115,6 @@ const helpers = {
     return parseInt(r.rows[0].c, 10);
   },
 
-  // Dodaj nowe konto (przez admina)
   async addAccount(productId, credentialsEncrypted) {
     await query(
       'INSERT INTO accounts (product_id, credentials_encrypted) VALUES ($1, $2)',
@@ -132,11 +122,12 @@ const helpers = {
     );
   },
 
-  // Ostatnie N zamowien (dla panelu admina)
+  // Pokazuj wylacznie zamowienia zrealizowane / oplacone gwiazdkami Stars
   async getRecentOrders(limit) {
     const r = await query(
       `SELECT o.*, p.name as product_name
        FROM orders o JOIN products p ON o.product_id = p.id
+       WHERE o.payment_method = 'stars' AND o.status IN ('fulfilled', 'paid')
        ORDER BY o.created_at DESC
        LIMIT $1`,
       [limit || 10]

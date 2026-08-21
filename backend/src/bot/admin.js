@@ -51,20 +51,24 @@ async function handleStock(ctx) {
   }
 }
 
+// Pokazuje tylko osoby, które zapłaciły gwiazdkami
 async function handleOrders(ctx) {
   if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnien.');
   try {
-    const orders = await helpers.getRecentOrders(10);
-    if (orders.length === 0) return ctx.reply('Brak zamówień w bazie.');
+    const orders = await helpers.getRecentOrders(15);
+    if (orders.length === 0) {
+      return ctx.reply('Brak opłaconych zamówień w bazie (żaden klient jeszcze nie zapłacił gwiazdkami).');
+    }
 
-    let msg = '🛒 <b>Ostatnie 10 zamówień:</b>\n\n';
+    let msg = '⭐ <b>Ostatnie opłacone zamówienia (Telegram Stars):</b>\n\n';
     for (const o of orders) {
-      const icon = o.status === 'fulfilled' ? '✅' : o.status === 'pending' ? '⏳' : '❌';
       const buyer = o.username ? '@' + o.username : 'ID: ' + o.user_id;
       const date = new Date(o.created_at).toLocaleString('pl-PL', { timeZone: 'Europe/Warsaw' });
-      msg += `${icon} <b>#${o.id} - ${escapeHtml(o.product_name)}</b>\n`
-           + `   👤 ${escapeHtml(buyer)} | ⭐ ${o.amount} ${escapeHtml(o.currency)}\n`
-           + `   📅 ${date}\n\n`;
+      msg += `⭐ <b>#${o.id} - ${escapeHtml(o.product_name)}</b>\n`
+           + `   👤 <b>Kupujący:</b> ${escapeHtml(buyer)}\n`
+           + `   💰 <b>Kwota:</b> ${o.amount} Stars\n`
+           + `   📅 <b>Data:</b> ${date}\n`
+           + `   ✅ <b>Status:</b> Zrealizowane\n\n`;
     }
     await ctx.reply(msg, { parse_mode: 'HTML' });
   } catch (err) {
@@ -83,7 +87,7 @@ async function handleAddAccount(ctx) {
     }
 
     adminState.set(ctx.from.id, { step: 'select_product' });
-    await ctx.reply('Wybierz produkt, do ktorego dodajesz konto:', {
+    await ctx.reply('Wybierz produkt, do którego dodajesz konto:', {
       reply_markup: {
         inline_keyboard: products.map((p) => ([
           { text: p.name, callback_data: 'addacc_' + p.id },
@@ -91,7 +95,7 @@ async function handleAddAccount(ctx) {
       },
     });
   } catch (err) {
-    await ctx.reply('Blad: ' + err.message);
+    await ctx.reply('Błąd: ' + err.message);
   }
 }
 
@@ -161,9 +165,9 @@ async function handleAdminHelp(ctx) {
     '🛠 <b>Panel Admina CardShoop</b>\n\n' +
     '/addaccount - Dodaj nowe konto do bazy\n' +
     '/stock - Sprawdz stan magazynu\n' +
-    '/orders - Ostatnie 10 zamowien\n' +
+    '/orders - Ostatnie opłacone zamówienia (Stars)\n' +
     '/seed - Dodaj bazowe produkty\n' +
-    '/cancel - Anuluj biezaca operacje\n',
+    '/cancel - Anuluj bieżącą operację\n',
     { parse_mode: 'HTML' }
   );
 }

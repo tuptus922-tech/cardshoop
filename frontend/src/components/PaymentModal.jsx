@@ -44,7 +44,9 @@ export default function PaymentModal({ product, onClose, onBuyStars }) {
               {brand.logo ? (
                 <img src={brand.logo} alt={product.category} className="w-full h-full object-contain" />
               ) : (
-                <span className="text-2xl">📦</span>
+                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
               )}
             </div>
             <div>
@@ -60,9 +62,11 @@ export default function PaymentModal({ product, onClose, onBuyStars }) {
           <button
             onClick={onClose}
             disabled={loading}
-            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-sm font-bold transition-colors"
+            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs font-bold transition-colors"
           >
-            ✕
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
           </button>
         </div>
 
@@ -75,7 +79,7 @@ export default function PaymentModal({ product, onClose, onBuyStars }) {
           <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between">
             <span className="text-xs text-slate-400 font-medium">Do zapłaty:</span>
             <div className="flex items-center gap-1.5">
-              <span className="text-xl animate-star-glow">⭐</span>
+              <img src="/assets/stars.svg" alt="Stars" className="w-5 h-5 object-contain" />
               <span className="text-xl font-extrabold text-amber-300 tracking-tight">
                 {product.price_stars}
               </span>
@@ -87,22 +91,28 @@ export default function PaymentModal({ product, onClose, onBuyStars }) {
         {/* Benefits list */}
         <div className="space-y-2.5 mb-5 text-xs text-slate-300 bg-slate-800/30 p-3.5 rounded-xl border border-slate-800/50">
           <div className="flex items-center gap-2.5">
-            <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">
-              ✓
+            <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"/>
+              </svg>
             </div>
-            <span>Natychmiastowe wysłanie danych na Twój czat z botem</span>
+            <span>Natychmiastowe wysłanie danych w czacie z botem</span>
           </div>
           <div className="flex items-center gap-2.5">
-            <div className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-[10px] font-bold">
-              ✓
+            <div className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"/>
+              </svg>
             </div>
             <span>Bezpieczna oficjalna płatność Telegram Stars</span>
           </div>
           <div className="flex items-center gap-2.5">
-            <div className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-bold">
-              ✓
+            <div className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"/>
+              </svg>
             </div>
-            <span>Gwarancja i wsparcie administratora</span>
+            <span>Gwarancja i wsparcie techniczne 24/7</span>
           </div>
         </div>
 
@@ -119,8 +129,9 @@ export default function PaymentModal({ product, onClose, onBuyStars }) {
             </>
           ) : (
             <>
-              <span>Zapłać {product.price_stars} ⭐</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span>Zapłać {product.price_stars} Stars</span>
+              <img src="/assets/stars.svg" alt="Stars" className="w-4 h-4 object-contain" />
+              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
               </svg>
             </>
