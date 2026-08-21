@@ -1,7 +1,7 @@
 'use strict';
 const express = require('express');
 const crypto = require('crypto');
-const { createStarsInvoice, createCryptoInvoice } = require('../bot/payments');
+const { createStarsInvoice } = require('../bot/payments');
 const { helpers } = require('../db/database');
 
 const router = express.Router();
@@ -46,22 +46,6 @@ router.post('/stars', maybeValidate, async (req, res) => {
     res.json({ ok: true, invoice_link: invoiceLink, order_id: orderId });
   } catch (err) {
     console.error('[API/invoices/stars]', err.message);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-router.post('/crypto', maybeValidate, async (req, res) => {
-  const { product_id, asset } = req.body;
-  const user = req.telegramUser;
-  if (!product_id) return res.status(400).json({ ok: false, error: 'Brak product_id' });
-  const safeAsset = asset || 'USDT';
-  const allowedAssets = ['USDT', 'TON', 'BTC', 'ETH', 'NOT'];
-  if (!allowedAssets.includes(safeAsset)) return res.status(400).json({ ok: false, error: 'Nieobslugiwany asset' });
-  try {
-    const { payUrl, orderId } = await createCryptoInvoice(Number(product_id), user.id, user.username, safeAsset);
-    res.json({ ok: true, pay_url: payUrl, order_id: orderId });
-  } catch (err) {
-    console.error('[API/invoices/crypto]', err.message);
     res.status(500).json({ ok: false, error: err.message });
   }
 });
