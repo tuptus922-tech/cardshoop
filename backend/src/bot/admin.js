@@ -1,5 +1,6 @@
 'use strict';
 const { helpers } = require('../db/database');
+const { seedProductsIfEmpty } = require('../db/migrations');
 
 const adminState = new Map();
 
@@ -12,15 +13,28 @@ function isAdmin(userId) {
   return getAdminIds().includes(String(userId));
 }
 
+async function handleSeed(ctx) {
+  if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnien.');
+  try {
+    await seedProductsIfEmpty();
+    await ctx.reply('✅ Produkty startowe dodane do bazy!');
+  } catch (err) {
+    await ctx.reply('Błąd seedowania: ' + err.message);
+  }
+}
+
 async function handleStock(ctx) {
   if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnien.');
   try {
     const products = await helpers.getAllProducts();
+    if (products.length === 0) {
+      return ctx.reply('Brak produktów w bazie. Wpisz /seed aby dodać produkty startowe.');
+    }
     let msg = '📦 *Stan magazynu:*\n\n';
     for (const product of products) {
       const count = await helpers.getAvailableAccountCount(product.id);
       const emoji = count === 0 ? '🔴' : count < 3 ? '🟡' : '🟢';
-      msg += emoji + ' *' + product.name + '*\n   Kont dostepnych: *' + count + '*\n\n';
+      msg += emoji + ' *' + product.name + '*\n   Kont dostępnych: *' + count + '*\n\n';
     }
     await ctx.reply(msg, { parse_mode: 'Markdown' });
   } catch (err) {
@@ -52,7 +66,12 @@ async function handleOrders(ctx) {
 async function handleAddAccount(ctx) {
   if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnien.');
   try {
-    const products = await helpers.getAllProducts();
+    let products = await helpers.getAllProducts();
+    if (products.length === 0) {
+      await seedProductsIfEmpty();
+      products = await helpers.getAllProducts();
+    }
+
     adminState.set(ctx.from.id, { step: 'select_product' });
     await ctx.reply('Wybierz produkt, do ktorego dodajesz konto:', {
       reply_markup: {
@@ -137,6 +156,7 @@ async function handleAdminHelp(ctx) {
     '/addaccount - Dodaj nowe konto do bazy\n' +
     '/stock - Sprawdz stan magazynu\n' +
     '/orders - Ostatnie 10 zamowien\n' +
+    '/seed - Dodaj bazowe produkty (Spotify, Netflix...)\n' +
     '/cancel - Anuluj biezaca operacje\n',
     { parse_mode: 'Markdown' }
   );
@@ -150,4 +170,5 @@ module.exports = {
   handleProductCallback,
   handleAdminText,
   handleAdminHelp,
+  handleSeed,
 };

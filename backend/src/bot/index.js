@@ -9,6 +9,7 @@ const {
   handleProductCallback,
   handleAdminText,
   handleAdminHelp,
+  handleSeed,
 } = require('./admin');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -34,6 +35,7 @@ bot.start(async (ctx) => {
 bot.command('addaccount', handleAddAccount);
 bot.command('stock', handleStock);
 bot.command('orders', handleOrders);
+bot.command('seed', handleSeed);
 bot.command('help', handleAdminHelp);
 
 // --- CALLBACK QUERIES (przyciski) ---
