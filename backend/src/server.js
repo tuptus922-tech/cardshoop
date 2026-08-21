@@ -17,14 +17,14 @@ app.use(cors({
   methods: ['GET', 'POST'],
 }));
 
-app.use(express.json());
-
-app.set('bot', bot);
-
+// Webhook for Telegraf - MUST be registered like this in Express:
 const WEBHOOK_PATH = '/webhook';
-app.use(WEBHOOK_PATH, bot.webhookCallback(WEBHOOK_PATH, {
+app.use(bot.webhookCallback(WEBHOOK_PATH, {
   secretToken: process.env.WEBHOOK_SECRET,
 }));
+
+app.use(express.json());
+app.set('bot', bot);
 
 app.use('/api/products', productsRouter);
 app.use('/api/invoices', invoicesRouter);
