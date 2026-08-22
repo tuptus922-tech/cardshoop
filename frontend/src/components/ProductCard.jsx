@@ -15,19 +15,22 @@ export default function ProductCard({ product, onSelect, index = 0 }) {
   const matchPeriod = product.name.match(/\b(\d+[MYDmyd]|Miesiąc|Miesiące|Miesięcy|Rok)\b/i);
   const period = matchPeriod ? matchPeriod[0].toUpperCase() : null;
 
+  const inStock = product.stock && product.stock > 0;
+
   return (
     <div
-      onClick={() => onSelect(product)}
+      onClick={() => inStock && onSelect(product)}
       style={{ 
         animationDelay: `${index * 45}ms`,
         backgroundColor: 'var(--color-surface)',
         borderColor: 'var(--color-border)',
+        opacity: inStock ? 1 : 0.6,
       }}
-      className="swiss-card p-3.5 flex flex-col justify-between cursor-pointer group select-none anim-slide-up"
+      className={`swiss-card p-3.5 flex flex-col justify-between group select-none anim-slide-up ${inStock ? 'cursor-pointer' : 'cursor-not-allowed'}`}
     >
-      {/* Top Section: Brand Emblem & Duration Indicator */}
+      {/* Top Section: Brand Emblem, Period & Stock Indicator */}
       <div>
-        <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start justify-between gap-1 mb-3">
           <div 
             className="w-9 h-9 rounded-xl border flex items-center justify-center p-1.5 flex-shrink-0 group-hover:scale-110 group-hover:rotate-[-3deg] transition-transform duration-300 ease-out shadow-sm"
             style={{
@@ -37,18 +40,36 @@ export default function ProductCard({ product, onSelect, index = 0 }) {
           >
             {brandIcon}
           </div>
-          {period && (
+
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex items-center gap-1">
+              {period && (
+                <span 
+                  className="text-[10px] font-mono font-bold tracking-wider px-1.5 py-0.5 rounded-md border group-hover:border-white/[0.2] transition-colors"
+                  style={{
+                    backgroundColor: 'var(--color-badge-bg)',
+                    color: 'var(--color-text-secondary)',
+                    borderColor: 'var(--color-border)',
+                  }}
+                >
+                  {period}
+                </span>
+              )}
+            </div>
+
+            {/* Dynamic Stock Indicator Badge */}
             <span 
-              className="text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded-md border group-hover:border-white/[0.2] transition-colors"
+              className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded-md border flex items-center gap-1 transition-colors"
               style={{
-                backgroundColor: 'var(--color-badge-bg)',
-                color: 'var(--color-text-secondary)',
-                borderColor: 'var(--color-border)',
+                backgroundColor: inStock ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                borderColor: inStock ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)',
+                color: inStock ? '#10B981' : '#EF4444',
               }}
             >
-              {period}
+              <span className={`w-1 h-1 rounded-full ${inStock ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
+              {inStock ? `${product.stock} in stock` : 'Out of stock'}
             </span>
-          )}
+          </div>
         </div>
 
         {/* Title */}
@@ -86,15 +107,17 @@ export default function ProductCard({ product, onSelect, index = 0 }) {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onSelect(product);
+            if (inStock) onSelect(product);
           }}
-          className="px-3.5 py-1.5 rounded-xl text-[11px] font-bold tracking-tight touch-press transition-all duration-150 shadow-sm flex items-center gap-1 group-hover:shadow-md"
+          disabled={!inStock}
+          className="px-3.5 py-1.5 rounded-xl text-[11px] font-bold tracking-tight touch-press transition-all duration-150 shadow-sm flex items-center gap-1 group-hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
           style={{
-            backgroundColor: 'var(--color-btn-bg)',
-            color: 'var(--color-btn-text)',
+            backgroundColor: inStock ? 'var(--color-btn-bg)' : 'var(--color-surface)',
+            color: inStock ? 'var(--color-btn-text)' : 'var(--color-text-muted)',
+            border: inStock ? 'none' : '1px solid var(--color-border)',
           }}
         >
-          <span>Buy</span>
+          <span>{inStock ? 'Buy' : 'Sold Out'}</span>
         </button>
       </div>
     </div>
