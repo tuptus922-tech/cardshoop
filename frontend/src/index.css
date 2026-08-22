@@ -2,86 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --tg-theme-bg-color: #0f172a;
-  --tg-theme-text-color: #f8fafc;
-  --tg-theme-hint-color: #94a3b8;
-  --tg-theme-link-color: #38bdf8;
-  --tg-theme-button-color: #3b82f6;
-  --tg-theme-button-text-color: #ffffff;
-  --tg-theme-secondary-bg-color: #1e293b;
-  --tg-theme-accent: #f59e0b;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  background-color: var(--tg-theme-bg-color);
-  color: var(--tg-theme-text-color);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  overflow-x: hidden;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-/* Glassmorphism helpers */
-.glass-panel {
-  background: rgba(30, 41, 59, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.glass-card {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.glass-modal {
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-/* Animations */
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
+@layer base {
+  :root {
+    --color-canvas: #09090b;
+    --color-surface: #121215;
+    --color-surface-hover: #18181c;
+    --color-surface-active: #1e1e23;
+    --color-border: rgba(255, 255, 255, 0.08);
+    --color-border-subtle: rgba(255, 255, 255, 0.04);
+    --color-text-primary: #f4f4f5;
+    --color-text-secondary: #a1a1aa;
+    --color-text-muted: #71717a;
+    --brand-spotify: #1DB954;
+    --brand-netflix: #E50914;
+    --brand-youtube: #FF0000;
+    --brand-discord: #5865F2;
   }
-  to {
-    transform: translateY(0);
-    opacity: 1;
+
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-canvas);
+    color: var(--color-text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    overflow-x: hidden;
+  }
+
+  * {
+    box-sizing: border-box;
+    border-color: var(--color-border);
   }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.96); }
-  to { opacity: 1; transform: scale(1); }
+/* Swiss Minimal Utilities */
+.swiss-border {
+  border: 1px solid var(--color-border);
 }
 
-@keyframes starGlow {
-  0%, 100% { filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.6)); }
-  50% { filter: drop-shadow(0 0 16px rgba(251, 191, 36, 0.9)); }
+.swiss-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
 }
 
-.animate-slide-up {
-  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.swiss-pill {
+  border-radius: 9999px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  transition: transform 0.1s ease, opacity 0.1s ease, background-color 0.15s ease;
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.2s ease-out forwards;
+.swiss-pill:active {
+  opacity: 0.92;
+  transform: scale(0.99);
 }
 
-.animate-star-glow {
-  animation: starGlow 2.5s infinite ease-in-out;
+.touch-press {
+  transition: opacity 0.1s linear, transform 0.1s ease;
+}
+
+.touch-press:active {
+  opacity: 0.92;
+  transform: scale(0.985);
 }
 
 .no-scrollbar::-webkit-scrollbar {
