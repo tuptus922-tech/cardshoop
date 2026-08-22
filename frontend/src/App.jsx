@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header.jsx';
 import CategoryIndex from './components/CategoryIndex.jsx';
 import ProductList from './components/ProductList.jsx';
@@ -11,36 +11,51 @@ const API_BASE = import.meta.env.VITE_API_URL || 'https://cardshoop.onrender.com
 
 export default function App() {
   const { webApp, user, initData, colorScheme } = useTelegramWebApp();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  
+  // Instant SWR caching from sessionStorage for 0ms initial render
+  const [products, setProducts] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem('cs_products_cache');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [loading, setLoading] = useState(() => products.length === 0);
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [orderSuccess, setOrderSuccess] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState(null);
 
-  // Fetch products
-  const fetchProducts = async () => {
-    setLoading(true);
+  // Fast background inventory revalidation
+  const fetchProducts = useCallback(async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     setError(null);
     try {
       const res = await fetch(`${API_BASE}/products`);
       const data = await res.json();
-      if (data.ok) {
+      if (data.ok && Array.isArray(data.result)) {
         setProducts(data.result);
-      } else {
+        try {
+          sessionStorage.setItem('cs_products_cache', JSON.stringify(data.result));
+        } catch {}
+      } else if (!isSilent) {
         setError('Failed to retrieve inventory matrix.');
       }
     } catch (err) {
-      console.error(err);
-      setError('Connection failure with gateway server.');
+      if (!isSilent && products.length === 0) {
+        setError('Connection failure with gateway server.');
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [products.length]);
 
   useEffect(() => {
-    fetchProducts();
+    // Initial fetch or silent refresh
+    fetchProducts(products.length > 0);
   }, []);
 
   const categories = useMemo(() => {
@@ -67,26 +82,26 @@ export default function App() {
     }
   }, [activeCategory, searchQuery, webApp]);
 
-  const handleSelectCategory = (category) => {
+  const handleSelectCategory = useCallback((category) => {
     webApp?.HapticFeedback?.impactOccurred('light');
     setActiveCategory(category);
-  };
+  }, [webApp]);
 
-  const handleSelectAll = () => {
+  const handleSelectAll = useCallback(() => {
     webApp?.HapticFeedback?.impactOccurred('light');
     setActiveCategory('Wszystkie');
-  };
+  }, [webApp]);
 
-  const handleBackToIndex = () => {
+  const handleBackToIndex = useCallback(() => {
     webApp?.HapticFeedback?.impactOccurred('light');
     setActiveCategory(null);
     setSearchQuery('');
-  };
+  }, [webApp]);
 
-  const handleSelectProduct = (product) => {
+  const handleSelectProduct = useCallback((product) => {
     webApp?.HapticFeedback?.impactOccurred('medium');
     setSelectedProduct(product);
-  };
+  }, [webApp]);
 
   const handleBuyStars = async (product) => {
     if (!webApp) {
@@ -115,6 +130,8 @@ export default function App() {
             orderId: data.order_id,
             productName: product.name,
           });
+          // Refresh products to update stock instantly
+          fetchProducts(true);
         } else if (status === 'failed') {
           webApp.HapticFeedback?.notificationOccurred('error');
           webApp.showAlert('Payment rejected or cancelled.');
@@ -184,7 +201,7 @@ export default function App() {
             webApp?.HapticFeedback?.impactOccurred('light');
             setOrderSuccess(null);
           }}
-          className="w-full max-w-xs py-3.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider touch-press transition-all shadow-md"
+          className="w-full max-w-xs py-3.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider touch-press transition-all shadow-md cursor-pointer"
           style={{
             backgroundColor: 'var(--color-btn-bg)',
             color: 'var(--color-btn-text)',
@@ -215,7 +232,7 @@ export default function App() {
       />
 
       <main className="flex-1 max-w-md w-full mx-auto py-2">
-        {loading && (
+        {loading && products.length === 0 && (
           <div className="px-4 py-4 flex flex-col gap-3 anim-fade-in">
             <div className="h-4 w-28 rounded-md skeleton-shimmer mb-1" />
             <div className="h-16 w-full rounded-full skeleton-shimmer" />
@@ -224,7 +241,7 @@ export default function App() {
           </div>
         )}
 
-        {error && (
+        {error && products.length === 0 && (
           <div 
             className="m-4 p-5 rounded-2xl border text-center anim-slide-up"
             style={{
@@ -234,8 +251,8 @@ export default function App() {
           >
             <p className="text-xs font-mono mb-3" style={{ color: 'var(--color-text-secondary)' }}>{error}</p>
             <button
-              onClick={fetchProducts}
-              className="px-4 py-2 text-xs font-mono font-bold rounded-lg transition-colors touch-press border"
+              onClick={() => fetchProducts(false)}
+              className="px-4 py-2 text-xs font-mono font-bold rounded-lg transition-colors touch-press border cursor-pointer"
               style={{
                 backgroundColor: 'var(--color-badge-bg)',
                 borderColor: 'var(--color-border)',
@@ -247,7 +264,7 @@ export default function App() {
           </div>
         )}
 
-        {!loading && !error && (
+        {products.length > 0 && (
           <>
             {!activeCategory && !searchQuery ? (
               <>

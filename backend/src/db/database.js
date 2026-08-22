@@ -6,6 +6,9 @@ const crypto = require('crypto');
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
 });
 
 pool.on('error', (err) => {
@@ -33,17 +36,28 @@ function decrypt(data) {
 }
 
 async function query(text, params) {
-  const client = await pool.connect();
-  try {
-    return await client.query(text, params);
-  } finally {
-    client.release();
-  }
+  return pool.query(text, params);
+}
+
+// In-memory micro-cache (3-5s) to eliminate DB bottlenecks under concurrent traffic
+let inStockCache = null;
+let inStockCacheTime = 0;
+let allProductsCache = null;
+let allProductsCacheTime = 0;
+
+function invalidateCache() {
+  inStockCache = null;
+  allProductsCache = null;
 }
 
 const helpers = {
-  // Tylko produkty z dostepnymi kontami (> 0)
+  // Tylko produkty z dostepnymi kontami (> 0) z micro-cache
   async getInStockProducts() {
+    const now = Date.now();
+    if (inStockCache && now - inStockCacheTime < 3000) {
+      return inStockCache;
+    }
+
     const r = await query(`
       SELECT p.*, COUNT(a.id)::int as stock
       FROM products p
@@ -53,11 +67,21 @@ const helpers = {
       HAVING COUNT(a.id) > 0
       ORDER BY p.category, p.price_stars
     `);
+
+    inStockCache = r.rows;
+    inStockCacheTime = now;
     return r.rows;
   },
 
   async getAllProducts() {
+    const now = Date.now();
+    if (allProductsCache && now - allProductsCacheTime < 5000) {
+      return allProductsCache;
+    }
+
     const r = await query('SELECT * FROM products WHERE is_active = 1 ORDER BY category, price_stars');
+    allProductsCache = r.rows;
+    allProductsCacheTime = now;
     return r.rows;
   },
 
@@ -67,6 +91,7 @@ const helpers = {
   },
 
   async updateProductPrice(productId, newPriceStars) {
+    invalidateCache();
     await query('UPDATE products SET price_stars = $1 WHERE id = $2', [newPriceStars, productId]);
   },
 
@@ -98,13 +123,14 @@ const helpers = {
 
   async getAvailableAccount(productId) {
     const r = await query(
-      'SELECT * FROM accounts WHERE product_id = $1 AND is_sold = false LIMIT 1',
+      'SELECT * FROM accounts WHERE product_id = $1 AND is_sold = false ORDER BY id ASC LIMIT 1',
       [productId]
     );
     return r.rows[0] || null;
   },
 
   async markAccountSold(accountId, userId) {
+    invalidateCache();
     await query(
       'UPDATE accounts SET is_sold = true, sold_to_user_id = $1, sold_at = CURRENT_TIMESTAMP WHERE id = $2',
       [userId, accountId]
@@ -120,13 +146,13 @@ const helpers = {
   },
 
   async addAccount(productId, credentialsEncrypted) {
+    invalidateCache();
     await query(
       'INSERT INTO accounts (product_id, credentials_encrypted) VALUES ($1, $2)',
       [productId, credentialsEncrypted]
     );
   },
 
-  // Pobierz liste niesprzedanych kont dla danego produktu (do zarzadzania / usuwania)
   async getAvailableAccountsList(productId) {
     const r = await query(
       'SELECT id, product_id, credentials_encrypted, created_at FROM accounts WHERE product_id = $1 AND is_sold = false ORDER BY id ASC',
@@ -142,8 +168,8 @@ const helpers = {
     });
   },
 
-  // Usun konkretne konto z bazy
   async deleteAccountById(accountId) {
+    invalidateCache();
     const r = await query(
       'DELETE FROM accounts WHERE id = $1 AND is_sold = false RETURNING product_id',
       [accountId]
@@ -151,8 +177,8 @@ const helpers = {
     return r.rows[0] || null;
   },
 
-  // Wyczysc wszystkie niesprzedane konta dla danego produktu
   async clearAllAvailableAccountsForProduct(productId) {
+    invalidateCache();
     const r = await query(
       'DELETE FROM accounts WHERE product_id = $1 AND is_sold = false',
       [productId]
@@ -210,6 +236,7 @@ const helpers = {
 
   encrypt,
   decrypt,
+  invalidateCache,
 };
 
 module.exports = { pool, helpers };
