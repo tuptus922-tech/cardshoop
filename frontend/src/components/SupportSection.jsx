@@ -39,7 +39,7 @@ export default function SupportSection({ webApp }) {
           className="text-[11px] font-mono uppercase tracking-widest font-semibold"
           style={{ color: 'var(--color-text-muted)' }}
         >
-          Direct Support & Help
+          Direct Support
         </span>
         <span 
           className="text-[10px] font-mono px-2 py-0.5 rounded-full border"
@@ -49,7 +49,7 @@ export default function SupportSection({ webApp }) {
             color: 'var(--color-text-secondary)',
           }}
         >
-          24/7 ASSISTANCE
+          TELEGRAM DIRECT
         </span>
       </div>
 
@@ -70,7 +70,7 @@ export default function SupportSection({ webApp }) {
               }}
             >
               <div className="flex items-center gap-3">
-                {/* Admin Avatar */}
+                {/* Admin Avatar without static dot */}
                 <div className="relative flex-shrink-0">
                   {admin.photoUrl ? (
                     <img
@@ -94,11 +94,9 @@ export default function SupportSection({ webApp }) {
                       {initial}
                     </div>
                   )}
-                  {/* Online Dot */}
-                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#09090b]"></span>
                 </div>
 
-                {/* Name & Role */}
+                {/* Name & Subtitle */}
                 <div className="flex flex-col">
                   <div className="flex items-center gap-1.5">
                     <span 
@@ -112,7 +110,7 @@ export default function SupportSection({ webApp }) {
                     className="text-[11px] font-mono mt-0.5"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
-                    Official Administrator
+                    Tap to message on Telegram
                   </span>
                 </div>
               </div>

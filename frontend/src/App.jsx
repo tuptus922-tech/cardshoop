@@ -252,6 +252,7 @@ export default function App() {
             {!activeCategory && !searchQuery ? (
               <>
                 <CategoryIndex
+                  user={user}
                   categories={categories}
                   products={products}
                   onSelectCategory={handleSelectCategory}

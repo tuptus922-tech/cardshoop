@@ -1,4 +1,5 @@
 import React from 'react';
+import WelcomeBanner from './WelcomeBanner.jsx';
 import { IconSpotify, IconNetflix, IconYouTube, IconDiscord, IconPackage } from './Icons.jsx';
 
 const BRAND_META = {
@@ -28,7 +29,7 @@ const BRAND_META = {
   },
 };
 
-export default function CategoryIndex({ categories, products, onSelectCategory, onSelectAll }) {
+export default function CategoryIndex({ user, categories, products, onSelectCategory, onSelectAll }) {
   const categoryCounts = categories.reduce((acc, cat) => {
     acc[cat] = products.filter((p) => p.category === cat).length;
     return acc;
@@ -36,6 +37,9 @@ export default function CategoryIndex({ categories, products, onSelectCategory, 
 
   return (
     <div className="px-4 py-3 flex flex-col gap-3 max-w-md mx-auto anim-fade-in">
+      {/* Onboarding Welcome Banner with Explanation */}
+      <WelcomeBanner user={user} />
+
       {/* Index Masthead Title */}
       <div className="flex items-center justify-between px-1 mb-0.5">
         <span 
