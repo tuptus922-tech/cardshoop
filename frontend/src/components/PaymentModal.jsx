@@ -33,30 +33,30 @@ export default function PaymentModal({ product, onClose, onBuyStars }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-md anim-fade-in transition-all"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md anim-fade-in transition-all duration-300"
       onClick={(e) => {
         if (e.target === e.currentTarget && !loading) onClose();
       }}
     >
       <div
-        className="w-full max-w-md border-t sm:border rounded-t-[28px] sm:rounded-[24px] p-6 flex flex-col max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl anim-modal-up"
+        className="w-full max-w-md border-t sm:border rounded-t-[32px] sm:rounded-[26px] p-6 flex flex-col max-h-[92vh] overflow-y-auto no-scrollbar shadow-2xl anim-modal-up"
         style={{
           backgroundColor: 'var(--color-modal-bg)',
           borderColor: 'var(--color-border)',
           color: 'var(--color-text-primary)',
         }}
       >
-        {/* Mobile Pull Bar */}
+        {/* Mobile Pull Bar with soft bounce */}
         <div 
-          className="w-10 h-1 rounded-full mx-auto mb-5 sm:hidden" 
+          className="w-12 h-1.5 rounded-full mx-auto mb-5 sm:hidden transition-opacity" 
           style={{ backgroundColor: 'var(--color-border-hover)' }}
         />
 
         {/* Header with Brand Icon and Title */}
-        <div className="flex items-start justify-between mb-5">
-          <div className="flex items-center gap-3">
+        <div className="flex items-start justify-between mb-5 anim-slide-up">
+          <div className="flex items-center gap-3.5">
             <div 
-              className="w-11 h-11 rounded-xl border flex items-center justify-center p-2 flex-shrink-0"
+              className="w-12 h-12 rounded-2xl border flex items-center justify-center p-2.5 flex-shrink-0 shadow-sm anim-float"
               style={{
                 backgroundColor: 'var(--color-icon-bg)',
                 borderColor: 'var(--color-border)',
@@ -72,7 +72,7 @@ export default function PaymentModal({ product, onClose, onBuyStars }) {
                 {product.category}
               </span>
               <h2 
-                className="text-sm font-bold tracking-tight leading-tight"
+                className="text-base font-bold tracking-tight leading-tight mt-0.5"
                 style={{ color: 'var(--color-text-primary)' }}
               >
                 {product.name}
@@ -83,7 +83,7 @@ export default function PaymentModal({ product, onClose, onBuyStars }) {
           <button
             onClick={onClose}
             disabled={loading}
-            className="w-7 h-7 rounded-full border flex items-center justify-center text-xs transition-colors touch-press"
+            className="w-8 h-8 rounded-full border flex items-center justify-center text-xs transition-colors touch-press cursor-pointer"
             style={{
               backgroundColor: 'var(--color-surface)',
               borderColor: 'var(--color-border)',
@@ -96,10 +96,11 @@ export default function PaymentModal({ product, onClose, onBuyStars }) {
 
         {/* Itemized Breakdown Table */}
         <div 
-          className="border rounded-xl p-4 mb-5 text-xs font-mono space-y-3"
+          className="border rounded-2xl p-4 mb-5 text-xs font-mono space-y-3 shadow-inner anim-slide-up"
           style={{
             backgroundColor: 'var(--color-modal-item)',
             borderColor: 'var(--color-border)',
+            animationDelay: '60ms',
           }}
         >
           <div className="flex justify-between items-center" style={{ color: 'var(--color-text-muted)' }}>
@@ -107,8 +108,11 @@ export default function PaymentModal({ product, onClose, onBuyStars }) {
             <span className="font-bold" style={{ color: 'var(--color-text-primary)' }}>{product.category}</span>
           </div>
           <div className="flex justify-between items-center" style={{ color: 'var(--color-text-muted)' }}>
-            <span>DELIVERY</span>
-            <span className="text-emerald-500 font-bold">AUTOMATED (1S)</span>
+            <span>DELIVERY SPEED</span>
+            <span className="text-emerald-500 font-bold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+              AUTOMATED (1S)
+            </span>
           </div>
           <div className="flex justify-between items-center" style={{ color: 'var(--color-text-muted)' }}>
             <span>PROTOCOL</span>
@@ -118,10 +122,10 @@ export default function PaymentModal({ product, onClose, onBuyStars }) {
             className="pt-3 border-t flex justify-between items-center"
             style={{ borderColor: 'var(--color-border)' }}
           >
-            <span className="font-bold" style={{ color: 'var(--color-text-secondary)' }}>TOTAL PAYABLE</span>
+            <span className="font-bold tracking-wider" style={{ color: 'var(--color-text-secondary)' }}>TOTAL PAYABLE</span>
             <div className="flex items-center gap-1.5">
               <IconStar className="w-4 h-4 text-amber-500" />
-              <span className="text-base font-black font-mono" style={{ color: 'var(--color-text-primary)' }}>
+              <span className="text-lg font-black font-mono tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
                 {product.price_stars} STARS
               </span>
             </div>
@@ -129,25 +133,32 @@ export default function PaymentModal({ product, onClose, onBuyStars }) {
         </div>
 
         {/* Specifications List */}
-        <div className="space-y-2 mb-6 text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+        <div 
+          className="space-y-2 mb-6 text-[11px] anim-slide-up" 
+          style={{ 
+            color: 'var(--color-text-muted)',
+            animationDelay: '100ms',
+          }}
+        >
           <div className="flex items-center gap-2">
-            <IconCheck className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-text-secondary)' }} />
+            <IconCheck className="w-3.5 h-3.5 flex-shrink-0 text-emerald-500" />
             <span>Credentials dispatched to direct chat upon confirmation</span>
           </div>
           <div className="flex items-center gap-2">
-            <IconCheck className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-text-secondary)' }} />
+            <IconCheck className="w-3.5 h-3.5 flex-shrink-0 text-emerald-500" />
             <span>AES-256 encrypted license record</span>
           </div>
         </div>
 
-        {/* Solid High-Contrast CTA Trigger */}
+        {/* Solid High-Contrast CTA Trigger with glowing pulse */}
         <button
           onClick={handlePay}
           disabled={loading}
-          className="w-full py-3.5 px-4 rounded-xl font-mono font-bold text-xs uppercase tracking-wider touch-press transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-3 shadow-md"
+          className="w-full py-4 px-4 rounded-2xl font-mono font-bold text-xs uppercase tracking-wider touch-press transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-3 shadow-lg hover:shadow-xl cursor-pointer anim-slide-up"
           style={{
             backgroundColor: 'var(--color-btn-bg)',
             color: 'var(--color-btn-text)',
+            animationDelay: '140ms',
           }}
         >
           {loading ? (
@@ -159,14 +170,17 @@ export default function PaymentModal({ product, onClose, onBuyStars }) {
               }}
             />
           ) : (
-            <span>Authorize Payment ({product.price_stars} Stars)</span>
+            <span className="flex items-center gap-2">
+              <IconStar className="w-4 h-4 text-amber-500" />
+              Authorize Payment ({product.price_stars} Stars)
+            </span>
           )}
         </button>
 
         <button
           onClick={onClose}
           disabled={loading}
-          className="w-full py-1.5 text-center text-[11px] font-mono hover:opacity-75 transition-opacity"
+          className="w-full py-2 text-center text-[11px] font-mono hover:opacity-80 transition-opacity cursor-pointer"
           style={{ color: 'var(--color-text-muted)' }}
         >
           Cancel

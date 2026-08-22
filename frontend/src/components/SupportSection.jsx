@@ -61,20 +61,21 @@ export default function SupportSection({ webApp }) {
           Direct Support
         </span>
         <span 
-          className="text-[10px] font-mono px-2 py-0.5 rounded-full border"
+          className="text-[10px] font-mono px-2 py-0.5 rounded-full border flex items-center gap-1"
           style={{
             backgroundColor: 'var(--color-badge-bg)',
             borderColor: 'var(--color-border)',
             color: 'var(--color-text-secondary)',
           }}
         >
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
           TELEGRAM DIRECT
         </span>
       </div>
 
-      {/* Admin Cards Grid */}
+      {/* Admin Cards Grid with stagger animation */}
       <div className="flex flex-col gap-2.5">
-        {admins.map((admin) => {
+        {admins.map((admin, idx) => {
           const initial = (admin.name || admin.username || 'A')[0].toUpperCase();
           const displayHandle = admin.username ? `@${admin.username}` : admin.name;
 
@@ -82,20 +83,21 @@ export default function SupportSection({ webApp }) {
             <button
               key={admin.id}
               onClick={() => handleOpenContact(admin)}
-              className="w-full flex items-center justify-between p-3.5 rounded-2xl border hover:scale-[1.01] touch-press transition-all duration-150 group shadow-sm text-left cursor-pointer"
               style={{
                 backgroundColor: 'var(--color-surface)',
                 borderColor: 'var(--color-border)',
+                animationDelay: `${idx * 80}ms`,
               }}
+              className="w-full flex items-center justify-between p-3.5 rounded-2xl border hover:scale-[1.015] touch-press transition-all duration-200 group shadow-sm text-left cursor-pointer anim-slide-up hover:shadow-md"
             >
               <div className="flex items-center gap-3">
-                {/* Admin Avatar */}
+                {/* Admin Avatar with gentle hover scale */}
                 <div className="relative flex-shrink-0">
                   {admin.photoUrl ? (
                     <img
                       src={admin.photoUrl}
                       alt={admin.name}
-                      className="w-10 h-10 rounded-full object-cover border shadow-sm"
+                      className="w-10 h-10 rounded-full object-cover border shadow-sm group-hover:scale-105 transition-transform duration-200"
                       style={{ borderColor: 'var(--color-border)' }}
                       onError={(e) => {
                         e.target.style.display = 'none';
@@ -103,7 +105,7 @@ export default function SupportSection({ webApp }) {
                     />
                   ) : (
                     <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm font-mono border shadow-inner"
+                      className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm font-mono border shadow-inner group-hover:scale-105 transition-transform duration-200"
                       style={{
                         backgroundColor: 'var(--color-icon-bg)',
                         borderColor: 'var(--color-border)',
@@ -119,14 +121,14 @@ export default function SupportSection({ webApp }) {
                 <div className="flex flex-col">
                   <div className="flex items-center gap-1.5">
                     <span 
-                      className="text-xs font-bold font-mono tracking-tight group-hover:underline"
+                      className="text-xs font-bold font-mono tracking-tight group-hover:text-emerald-400 transition-colors duration-200"
                       style={{ color: 'var(--color-text-primary)' }}
                     >
                       {displayHandle}
                     </span>
                   </div>
                   <span 
-                    className="text-[11px] font-mono mt-0.5"
+                    className="text-[11px] font-mono mt-0.5 group-hover:opacity-90 transition-opacity"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
                     Tap to message on Telegram
@@ -134,9 +136,9 @@ export default function SupportSection({ webApp }) {
                 </div>
               </div>
 
-              {/* Action Trailing Arrow */}
+              {/* Action Trailing Arrow with slide on hover */}
               <div 
-                className="w-7 h-7 rounded-full border flex items-center justify-center transition-colors group-hover:scale-105 flex-shrink-0"
+                className="w-7 h-7 rounded-full border flex items-center justify-center transition-all duration-200 group-hover:translate-x-1 group-hover:scale-110 flex-shrink-0"
                 style={{
                   backgroundColor: 'var(--color-icon-bg)',
                   borderColor: 'var(--color-border)',

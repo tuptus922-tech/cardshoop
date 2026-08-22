@@ -4,8 +4,12 @@ import { IconClose, IconCheck } from './Icons.jsx';
 export default function WelcomeBanner({ user }) {
   const [visible, setVisible] = useState(true);
 
-  // Dynamiczny uzytkownik Telegrama, ktory w danej chwili otworzyl sklep
-  const dynamicName = user?.first_name || (user?.username ? `@${user.username}` : 'Guest');
+  // Dokladnie ta sama logika co w gornym pasku naglowka (priorytet dla @username)
+  const displayName = user
+    ? user.username
+      ? `@${user.username}`
+      : `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Guest'
+    : 'Guest';
 
   if (!visible) return null;
 
@@ -47,7 +51,7 @@ export default function WelcomeBanner({ user }) {
         className="text-sm font-bold tracking-tight mb-1"
         style={{ color: 'var(--color-text-primary)' }}
       >
-        Welcome, <span className="text-emerald-500">{dynamicName}</span>!
+        Welcome, <span className="text-emerald-500 font-mono">{displayName}</span>!
       </h3>
       <p 
         className="text-xs leading-relaxed font-normal mb-3"
