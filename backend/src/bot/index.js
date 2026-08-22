@@ -3,6 +3,7 @@ require('dotenv').config();
 const { Telegraf } = require('telegraf');
 const { fulfillOrder } = require('./payments');
 const {
+  handleStats,
   handleStock,
   handleOrders,
   handleAddAccount,
@@ -32,6 +33,8 @@ bot.start(async (ctx) => {
 });
 
 // --- ADMIN COMMANDS ---
+bot.command('stats', handleStats);
+bot.command('balance', handleStats);
 bot.command('addaccount', handleAddAccount);
 bot.command('stock', handleStock);
 bot.command('orders', handleOrders);

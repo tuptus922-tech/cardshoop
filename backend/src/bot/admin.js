@@ -31,6 +31,25 @@ async function handleSeed(ctx) {
   }
 }
 
+// /stats i /balance - Zarobki i statystyki dla każdego admina
+async function handleStats(ctx) {
+  if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnień.');
+  try {
+    const stats = await helpers.getStats();
+    const msg =
+      '📊 <b>Statystyki i Zarobki CardShoop:</b>\n\n' +
+      `⭐️ <b>Łączny zarobek:</b> <b>${stats.totalStars} Stars</b>\n` +
+      `🛒 <b>Wszystkie zamówienia:</b> <b>${stats.totalOrders} szt.</b>\n\n` +
+      `📅 <b>Dzisiaj zarobiono:</b> <b>${stats.todayStars} Stars</b> (${stats.todayOrders} zamówień)\n\n` +
+      `📦 <b>Konta w magazynie (dostępne):</b> <b>${stats.inStock} szt.</b>\n` +
+      `✅ <b>Konta sprzedane łącznie:</b> <b>${stats.sold} szt.</b>`;
+    await ctx.reply(msg, { parse_mode: 'HTML' });
+  } catch (err) {
+    console.error('[Admin/stats]', err.message);
+    await ctx.reply('Błąd: ' + err.message);
+  }
+}
+
 async function handleStock(ctx) {
   if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnien.');
   try {
@@ -51,13 +70,12 @@ async function handleStock(ctx) {
   }
 }
 
-// Pokazuje tylko osoby, które zapłaciły gwiazdkami
 async function handleOrders(ctx) {
   if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnien.');
   try {
     const orders = await helpers.getRecentOrders(15);
     if (orders.length === 0) {
-      return ctx.reply('Brak opłaconych zamówień w bazie (żaden klient jeszcze nie zapłacił gwiazdkami).');
+      return ctx.reply('Brak opłaconych zamówień w bazie.');
     }
 
     let msg = '⭐ <b>Ostatnie opłacone zamówienia (Telegram Stars):</b>\n\n';
@@ -163,9 +181,10 @@ async function handleAdminHelp(ctx) {
   if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnien.');
   await ctx.reply(
     '🛠 <b>Panel Admina CardShoop</b>\n\n' +
+    '/stats - Statystyki i łączne zarobki bota (Stars)\n' +
+    '/stock - Stan magazynu (dostępne konta)\n' +
+    '/orders - Ostatnie opłacone zamówienia\n' +
     '/addaccount - Dodaj nowe konto do bazy\n' +
-    '/stock - Sprawdz stan magazynu\n' +
-    '/orders - Ostatnie opłacone zamówienia (Stars)\n' +
     '/seed - Dodaj bazowe produkty\n' +
     '/cancel - Anuluj bieżącą operację\n',
     { parse_mode: 'HTML' }
@@ -174,6 +193,7 @@ async function handleAdminHelp(ctx) {
 
 module.exports = {
   isAdmin,
+  handleStats,
   handleStock,
   handleOrders,
   handleAddAccount,

@@ -122,7 +122,6 @@ const helpers = {
     );
   },
 
-  // Pokazuj wylacznie zamowienia zrealizowane / oplacone gwiazdkami Stars
   async getRecentOrders(limit) {
     const r = await query(
       `SELECT o.*, p.name as product_name
@@ -133,6 +132,43 @@ const helpers = {
       [limit || 10]
     );
     return r.rows;
+  },
+
+  // Statystyki zarobkow i sprzedazy (dla adminow)
+  async getStats() {
+    const totalQuery = await query(`
+      SELECT 
+        COUNT(*)::int as total_orders,
+        COALESCE(SUM(amount), 0)::int as total_stars
+      FROM orders 
+      WHERE payment_method = 'stars' AND status IN ('fulfilled', 'paid')
+    `);
+
+    const todayQuery = await query(`
+      SELECT 
+        COUNT(*)::int as today_orders,
+        COALESCE(SUM(amount), 0)::int as today_stars
+      FROM orders 
+      WHERE payment_method = 'stars' 
+        AND status IN ('fulfilled', 'paid')
+        AND created_at::date = CURRENT_DATE
+    `);
+
+    const accountsQuery = await query(`
+      SELECT 
+        COUNT(*) FILTER (WHERE is_sold = false)::int as in_stock,
+        COUNT(*) FILTER (WHERE is_sold = true)::int as sold
+      FROM accounts
+    `);
+
+    return {
+      totalOrders: totalQuery.rows[0].total_orders,
+      totalStars: totalQuery.rows[0].total_stars,
+      todayOrders: todayQuery.rows[0].today_orders,
+      todayStars: todayQuery.rows[0].today_stars,
+      inStock: accountsQuery.rows[0].in_stock,
+      sold: accountsQuery.rows[0].sold,
+    };
   },
 
   encrypt,
