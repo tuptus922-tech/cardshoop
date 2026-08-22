@@ -8,6 +8,7 @@ const bot = require('./bot/index');
 const { runMigrations } = require('./db/migrations');
 const productsRouter = require('./api/products');
 const invoicesRouter = require('./api/invoices');
+const supportRouter = require('./api/support');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,6 +29,7 @@ app.set('bot', bot);
 
 app.use('/api/products', productsRouter);
 app.use('/api/invoices', invoicesRouter);
+app.use('/api/support', supportRouter);
 
 const FRONTEND_DIST = path.resolve(__dirname, '../../frontend/dist');
 app.use('/app', express.static(FRONTEND_DIST));

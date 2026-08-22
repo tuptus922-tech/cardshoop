@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Header from './components/Header.jsx';
 import CategoryIndex from './components/CategoryIndex.jsx';
 import ProductList from './components/ProductList.jsx';
+import SupportSection from './components/SupportSection.jsx';
 import PaymentModal from './components/PaymentModal.jsx';
 import { IconCheck } from './components/Icons.jsx';
 import { useTelegramWebApp } from './hooks/useTelegramWebApp.js';
@@ -249,21 +250,27 @@ export default function App() {
         {!loading && !error && (
           <>
             {!activeCategory && !searchQuery ? (
-              <CategoryIndex
-                categories={categories}
-                products={products}
-                onSelectCategory={handleSelectCategory}
-                onSelectAll={handleSelectAll}
-              />
+              <>
+                <CategoryIndex
+                  categories={categories}
+                  products={products}
+                  onSelectCategory={handleSelectCategory}
+                  onSelectAll={handleSelectAll}
+                />
+                <SupportSection webApp={webApp} />
+              </>
             ) : (
-              <ProductList
-                products={products}
-                onSelect={handleSelectProduct}
-                activeCategory={activeCategory}
-                onCategoryChange={setActiveCategory}
-                onBackToIndex={handleBackToIndex}
-                searchQuery={searchQuery}
-              />
+              <>
+                <ProductList
+                  products={products}
+                  onSelect={handleSelectProduct}
+                  activeCategory={activeCategory}
+                  onCategoryChange={setActiveCategory}
+                  onBackToIndex={handleBackToIndex}
+                  searchQuery={searchQuery}
+                />
+                <SupportSection webApp={webApp} />
+              </>
             )}
           </>
         )}
