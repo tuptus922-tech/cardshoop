@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { IconClose, IconCheck } from './Icons.jsx';
 
 export default function WelcomeBanner({ user }) {
   const [visible, setVisible] = useState(true);
 
-  const firstName = user?.first_name || (user?.username ? `@${user.username}` : null);
+  // Dynamiczny uzytkownik Telegrama, ktory w danej chwili otworzyl sklep
+  const dynamicName = user?.first_name || (user?.username ? `@${user.username}` : 'Guest');
 
   if (!visible) return null;
 
@@ -16,7 +17,7 @@ export default function WelcomeBanner({ user }) {
         borderColor: 'var(--color-border)',
       }}
     >
-      {/* Top Row: Welcome Tag & Dismiss Trigger */}
+      {/* Top Row: Store Badge & Dismiss Trigger */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -24,13 +25,13 @@ export default function WelcomeBanner({ user }) {
             className="text-[10px] font-mono font-bold tracking-widest uppercase"
             style={{ color: 'var(--color-text-muted)' }}
           >
-            {firstName ? `Welcome, ${firstName}` : 'Welcome to CardShoop'}
+            Digital License Store
           </span>
         </div>
 
         <button
           onClick={() => setVisible(false)}
-          className="w-5 h-5 rounded-full border flex items-center justify-center text-xs hover:opacity-75 transition-opacity touch-press"
+          className="w-5 h-5 rounded-full border flex items-center justify-center text-xs hover:opacity-75 transition-opacity touch-press cursor-pointer"
           style={{
             backgroundColor: 'var(--color-icon-bg)',
             borderColor: 'var(--color-border)',
@@ -41,12 +42,12 @@ export default function WelcomeBanner({ user }) {
         </button>
       </div>
 
-      {/* Main Title & Concise Explanation */}
+      {/* Main Dynamic Welcome Heading */}
       <h3 
         className="text-sm font-bold tracking-tight mb-1"
         style={{ color: 'var(--color-text-primary)' }}
       >
-        Automated Premium Subscriptions
+        Welcome, <span className="text-emerald-500">{dynamicName}</span>!
       </h3>
       <p 
         className="text-xs leading-relaxed font-normal mb-3"

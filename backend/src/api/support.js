@@ -31,12 +31,14 @@ router.get('/', async (req, res) => {
         } catch (e) {}
       }
 
+      const cleanUsername = chat.username ? chat.username.replace(/^@+/, '') : null;
+
       admins.push({
         id: String(chat.id),
-        name: chat.first_name || (chat.username ? `@${chat.username}` : `Admin #${chat.id}`),
-        username: chat.username || null,
+        name: chat.first_name || (cleanUsername ? `@${cleanUsername}` : `Admin #${chat.id}`),
+        username: cleanUsername,
         photoUrl: photoUrl,
-        telegramUrl: chat.username ? `https://t.me/${chat.username}` : `tg://user?id=${chat.id}`,
+        telegramUrl: cleanUsername ? `https://t.me/${cleanUsername}` : `https://t.me/cardshoop_bot`,
       });
     } catch (err) {
       console.warn(`[Support] Nie udalo sie pobrac danych dla admina ${id}:`, err.message);
@@ -45,7 +47,7 @@ router.get('/', async (req, res) => {
         name: `Admin`,
         username: null,
         photoUrl: null,
-        telegramUrl: `tg://user?id=${id}`,
+        telegramUrl: `https://t.me/cardshoop_bot`,
       });
     }
   }

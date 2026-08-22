@@ -20,12 +20,31 @@ export default function SupportSection({ webApp }) {
   }, []);
 
   const handleOpenContact = (admin) => {
-    webApp?.HapticFeedback?.impactOccurred('light');
-    if (webApp?.openTelegramLink) {
-      webApp.openTelegramLink(admin.telegramUrl);
-    } else {
-      window.open(admin.telegramUrl, '_blank');
+    const tg = window.Telegram?.WebApp || webApp;
+    tg?.HapticFeedback?.impactOccurred('light');
+
+    const cleanUsername = admin.username ? admin.username.replace(/^@+/, '') : null;
+    const directUrl = cleanUsername ? `https://t.me/${cleanUsername}` : admin.telegramUrl || 'https://t.me/cardshoop_bot';
+
+    if (tg?.openTelegramLink) {
+      try {
+        tg.openTelegramLink(directUrl);
+        return;
+      } catch (err) {
+        console.warn('openTelegramLink error:', err);
+      }
     }
+
+    if (tg?.openLink) {
+      try {
+        tg.openLink(directUrl);
+        return;
+      } catch (err) {
+        console.warn('openLink error:', err);
+      }
+    }
+
+    window.open(directUrl, '_blank');
   };
 
   if (loading && admins.length === 0) return null;
@@ -63,14 +82,14 @@ export default function SupportSection({ webApp }) {
             <button
               key={admin.id}
               onClick={() => handleOpenContact(admin)}
-              className="w-full flex items-center justify-between p-3.5 rounded-2xl border hover:scale-[1.01] touch-press transition-all duration-150 group shadow-sm text-left"
+              className="w-full flex items-center justify-between p-3.5 rounded-2xl border hover:scale-[1.01] touch-press transition-all duration-150 group shadow-sm text-left cursor-pointer"
               style={{
                 backgroundColor: 'var(--color-surface)',
                 borderColor: 'var(--color-border)',
               }}
             >
               <div className="flex items-center gap-3">
-                {/* Admin Avatar without static dot */}
+                {/* Admin Avatar */}
                 <div className="relative flex-shrink-0">
                   {admin.photoUrl ? (
                     <img
