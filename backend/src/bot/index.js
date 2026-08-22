@@ -5,6 +5,10 @@ const { fulfillOrder } = require('./payments');
 const {
   handlePrice,
   handlePriceCallback,
+  handleDelAccount,
+  handleDelProductCallback,
+  handleDeleteSpecificAccount,
+  handleClearAllAccounts,
   handleStats,
   handleStock,
   handleOrders,
@@ -36,6 +40,8 @@ bot.start(async (ctx) => {
 
 // --- ADMIN COMMANDS ---
 bot.command('price', handlePrice);
+bot.command('delaccount', handleDelAccount);
+bot.command('deleteaccount', handleDelAccount);
 bot.command('stats', handleStats);
 bot.command('balance', handleStats);
 bot.command('addaccount', handleAddAccount);
@@ -55,6 +61,15 @@ bot.on('callback_query', async (ctx) => {
   } else if (data.startsWith('setprice_')) {
     const productId = data.replace('setprice_', '');
     await handlePriceCallback(ctx, productId);
+  } else if (data.startsWith('delacc_prod_')) {
+    const productId = data.replace('delacc_prod_', '');
+    await handleDelProductCallback(ctx, productId);
+  } else if (data.startsWith('delacc_item_')) {
+    const accountId = data.replace('delacc_item_', '');
+    await handleDeleteSpecificAccount(ctx, accountId);
+  } else if (data.startsWith('delacc_all_')) {
+    const productId = data.replace('delacc_all_', '');
+    await handleClearAllAccounts(ctx, productId);
   }
 });
 

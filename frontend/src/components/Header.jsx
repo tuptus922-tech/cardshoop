@@ -2,6 +2,16 @@ import React from 'react';
 import { IconSearch, IconClose } from './Icons.jsx';
 
 export default function Header({ user, searchQuery, onSearchChange, onLogoClick }) {
+  const displayName = user
+    ? user.username
+      ? `@${user.username}`
+      : `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'User'
+    : 'DIRECT ACCESS';
+
+  const userInitial = user
+    ? (user.first_name || user.username || 'U')[0].toUpperCase()
+    : 'U';
+
   return (
     <header 
       className="sticky top-0 z-20 px-4 pt-3 pb-2.5 backdrop-blur-md border-b transition-colors duration-200"
@@ -11,14 +21,14 @@ export default function Header({ user, searchQuery, onSearchChange, onLogoClick 
       }}
     >
       {/* Masthead Row */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-2.5">
         {/* Brand Anchor */}
         <button
           onClick={onLogoClick}
           className="flex items-center gap-2 text-left touch-press group"
         >
           <div 
-            className="w-6 h-6 rounded-md flex items-center justify-center font-mono font-black text-xs transition-colors"
+            className="w-6 h-6 rounded-md flex items-center justify-center font-mono font-black text-xs transition-colors shadow-sm"
             style={{
               backgroundColor: 'var(--color-btn-bg)',
               color: 'var(--color-btn-text)',
@@ -34,26 +44,46 @@ export default function Header({ user, searchQuery, onSearchChange, onLogoClick 
           </span>
         </button>
 
-        {/* User Badge / Status Pill */}
+        {/* User Profile Pill with Avatar & Name */}
         {user ? (
           <div 
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition-colors"
+            className="flex items-center gap-2 px-2.5 py-1 rounded-full border shadow-sm transition-all anim-fade-in"
             style={{
               backgroundColor: 'var(--color-surface)',
               borderColor: 'var(--color-border)',
             }}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            {user.photo_url ? (
+              <img 
+                src={user.photo_url} 
+                alt={displayName} 
+                className="w-5 h-5 rounded-full object-cover border"
+                style={{ borderColor: 'var(--color-border)' }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            ) : (
+              <div 
+                className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold uppercase font-mono shadow-inner"
+                style={{
+                  backgroundColor: 'var(--color-btn-bg)',
+                  color: 'var(--color-btn-text)',
+                }}
+              >
+                {userInitial}
+              </div>
+            )}
             <span 
-              className="text-[10px] font-mono font-medium max-w-[100px] truncate"
-              style={{ color: 'var(--color-text-secondary)' }}
+              className="text-xs font-semibold font-mono max-w-[130px] truncate leading-none"
+              style={{ color: 'var(--color-text-primary)' }}
             >
-              {user.first_name || user.username}
+              {displayName}
             </span>
           </div>
         ) : (
           <div 
-            className="flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] font-mono transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-mono transition-colors"
             style={{
               backgroundColor: 'var(--color-surface)',
               borderColor: 'var(--color-border)',

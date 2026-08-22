@@ -126,6 +126,40 @@ const helpers = {
     );
   },
 
+  // Pobierz liste niesprzedanych kont dla danego produktu (do zarzadzania / usuwania)
+  async getAvailableAccountsList(productId) {
+    const r = await query(
+      'SELECT id, product_id, credentials_encrypted, created_at FROM accounts WHERE product_id = $1 AND is_sold = false ORDER BY id ASC',
+      [productId]
+    );
+    return r.rows.map((row) => {
+      let email = 'Konto #' + row.id;
+      try {
+        const creds = JSON.parse(decrypt(row.credentials_encrypted));
+        email = creds.email || email;
+      } catch (e) {}
+      return { id: row.id, product_id: row.product_id, email, created_at: row.created_at };
+    });
+  },
+
+  // Usun konkretne konto z bazy
+  async deleteAccountById(accountId) {
+    const r = await query(
+      'DELETE FROM accounts WHERE id = $1 AND is_sold = false RETURNING product_id',
+      [accountId]
+    );
+    return r.rows[0] || null;
+  },
+
+  // Wyczysc wszystkie niesprzedane konta dla danego produktu
+  async clearAllAvailableAccountsForProduct(productId) {
+    const r = await query(
+      'DELETE FROM accounts WHERE product_id = $1 AND is_sold = false',
+      [productId]
+    );
+    return r.rowCount;
+  },
+
   async getRecentOrders(limit) {
     const r = await query(
       `SELECT o.*, p.name as product_name

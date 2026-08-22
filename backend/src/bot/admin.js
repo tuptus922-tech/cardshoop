@@ -69,6 +69,104 @@ async function handlePriceCallback(ctx, productId) {
   }
 }
 
+// /delaccount lub /deleteaccount - Usuwanie kont z magazynu
+async function handleDelAccount(ctx) {
+  if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnień.');
+  try {
+    const products = await helpers.getAllProducts();
+    const inStockList = [];
+
+    for (const p of products) {
+      const count = await helpers.getAvailableAccountCount(p.id);
+      if (count > 0) {
+        inStockList.push({ ...p, count });
+      }
+    }
+
+    if (inStockList.length === 0) {
+      return ctx.reply('📦 Magazyn jest pusty – brak niesprzedanych kont do usunięcia.');
+    }
+
+    await ctx.reply('Wybierz produkt, z którego chcesz usunąć konta:', {
+      reply_markup: {
+        inline_keyboard: inStockList.map((p) => ([
+          { text: `${p.name} (${p.count} w magazynie)`, callback_data: 'delacc_prod_' + p.id },
+        ])),
+      },
+    });
+  } catch (err) {
+    await ctx.reply('Błąd: ' + err.message);
+  }
+}
+
+async function handleDelProductCallback(ctx, productId) {
+  if (!isAdmin(ctx.from.id)) return;
+  try {
+    const product = await helpers.getProduct(Number(productId));
+    if (!product) return ctx.reply('Produkt nie istnieje.');
+
+    const accounts = await helpers.getAvailableAccountsList(product.id);
+    if (accounts.length === 0) {
+      await ctx.answerCbQuery('Brak kont w magazynie.');
+      return ctx.reply(`Dla ${product.name} brak dostępnych kont w magazynie.`);
+    }
+
+    await ctx.answerCbQuery();
+
+    const buttons = accounts.map((acc) => ([
+      { text: `🗑 Usuń: ${acc.email} (#${acc.id})`, callback_data: 'delacc_item_' + acc.id },
+    ]));
+
+    buttons.push([
+      { text: `💥 Wyczyść WSZYSTKIE (${accounts.length} kont)`, callback_data: 'delacc_all_' + product.id },
+    ]);
+
+    await ctx.reply(
+      `📦 <b>Zarządzanie magazynem dla: ${escapeHtml(product.name)}</b>\n\nWybierz konto, które chcesz usunąć:`,
+      {
+        parse_mode: 'HTML',
+        reply_markup: { inline_keyboard: buttons },
+      }
+    );
+  } catch (err) {
+    await ctx.reply('Błąd: ' + err.message);
+  }
+}
+
+async function handleDeleteSpecificAccount(ctx, accountId) {
+  if (!isAdmin(ctx.from.id)) return;
+  try {
+    const deleted = await helpers.deleteAccountById(Number(accountId));
+    await ctx.answerCbQuery('Konto usunięte!');
+    if (deleted) {
+      const remaining = await helpers.getAvailableAccountCount(deleted.product_id);
+      await ctx.reply(
+        `✅ <b>Konto #${accountId} zostało trwale usunięte z magazynu!</b>\nPozostało dostępnych kont: <b>${remaining} szt.</b>`,
+        { parse_mode: 'HTML' }
+      );
+    } else {
+      await ctx.reply('Konto nie zostało znalezione lub zostało już sprzedane.');
+    }
+  } catch (err) {
+    await ctx.reply('Błąd usuwania: ' + err.message);
+  }
+}
+
+async function handleClearAllAccounts(ctx, productId) {
+  if (!isAdmin(ctx.from.id)) return;
+  try {
+    const product = await helpers.getProduct(Number(productId));
+    const count = await helpers.clearAllAvailableAccountsForProduct(Number(productId));
+    await ctx.answerCbQuery('Magazyn wyczyszczony!');
+    await ctx.reply(
+      `✅ <b>Wyczyszczono wszystkie konta (${count} szt.) dla ${escapeHtml(product ? product.name : 'produktu')}!</b>\nStan magazynu: 0 kont (produkt ukryty w sklepie).`,
+      { parse_mode: 'HTML' }
+    );
+  } catch (err) {
+    await ctx.reply('Błąd: ' + err.message);
+  }
+}
+
 async function handleStats(ctx) {
   if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnień.');
   try {
@@ -242,10 +340,11 @@ async function handleAdminHelp(ctx) {
   await ctx.reply(
     '🛠 <b>Panel Admina CardShoop</b>\n\n' +
     '/price - Zmień cenę produktu (w Stars)\n' +
-    '/stats - Statystyki i łączne zarobki bota\n' +
     '/stock - Stan magazynu (dostępne konta)\n' +
-    '/orders - Ostatnie opłacone zamówienia\n' +
     '/addaccount - Dodaj nowe konto do bazy\n' +
+    '/delaccount - Usuń konto z magazynu\n' +
+    '/orders - Ostatnie opłacone zamówienia\n' +
+    '/stats - Statystyki i łączne zarobki bota\n' +
     '/seed - Dodaj bazowe produkty\n' +
     '/cancel - Anuluj bieżącą operację\n',
     { parse_mode: 'HTML' }
@@ -256,6 +355,10 @@ module.exports = {
   isAdmin,
   handlePrice,
   handlePriceCallback,
+  handleDelAccount,
+  handleDelProductCallback,
+  handleDeleteSpecificAccount,
+  handleClearAllAccounts,
   handleStats,
   handleStock,
   handleOrders,
