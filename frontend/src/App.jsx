@@ -9,7 +9,7 @@ import { useTelegramWebApp } from './hooks/useTelegramWebApp.js';
 const API_BASE = import.meta.env.VITE_API_URL || 'https://cardshoop.onrender.com/api';
 
 export default function App() {
-  const { webApp, user, initData } = useTelegramWebApp();
+  const { webApp, user, initData, colorScheme } = useTelegramWebApp();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -128,32 +128,53 @@ export default function App() {
   // Success Confirmation View
   if (orderSuccess) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center p-6 text-center text-zinc-100 font-sans select-none anim-fade-in">
-        <div className="w-16 h-16 rounded-3xl bg-white/[0.06] border border-white/[0.14] flex items-center justify-center text-emerald-400 mb-4 anim-pop-in shadow-lg">
+      <div 
+        className="min-h-screen flex flex-col items-center justify-center p-6 text-center font-sans select-none anim-fade-in transition-colors duration-200"
+        style={{
+          backgroundColor: 'var(--color-canvas)',
+          color: 'var(--color-text-primary)',
+        }}
+      >
+        <div 
+          className="w-16 h-16 rounded-3xl border flex items-center justify-center text-emerald-500 mb-4 anim-pop-in shadow-lg"
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            borderColor: 'var(--color-border-hover)',
+          }}
+        >
           <IconCheck className="w-8 h-8" />
         </div>
-        <span className="text-[10px] font-mono font-bold tracking-widest text-emerald-400 uppercase mb-1">
+        <span className="text-[10px] font-mono font-bold tracking-widest text-emerald-500 uppercase mb-1">
           TRANSACTION FULFILLED
         </span>
-        <h2 className="text-xl font-bold tracking-tight text-white mb-2">
+        <h2 className="text-xl font-bold tracking-tight mb-2">
           License Dispatched
         </h2>
-        <p className="text-xs text-zinc-400 max-w-xs mb-6 font-mono leading-relaxed">
-          Credentials for <span className="text-zinc-200 font-bold">{orderSuccess.productName}</span> have been sent to your Telegram chat.
+        <p 
+          className="text-xs max-w-xs mb-6 font-mono leading-relaxed"
+          style={{ color: 'var(--color-text-muted)' }}
+        >
+          Credentials for <span className="font-bold" style={{ color: 'var(--color-text-primary)' }}>{orderSuccess.productName}</span> have been sent to your Telegram chat.
         </p>
 
-        <div className="bg-[#121215] border border-white/[0.08] rounded-2xl p-4 w-full max-w-xs mb-6 text-xs font-mono text-left space-y-2.5 anim-slide-up">
-          <div className="flex justify-between text-zinc-400">
+        <div 
+          className="border rounded-2xl p-4 w-full max-w-xs mb-6 text-xs font-mono text-left space-y-2.5 anim-slide-up"
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            borderColor: 'var(--color-border)',
+          }}
+        >
+          <div className="flex justify-between" style={{ color: 'var(--color-text-muted)' }}>
             <span>ORDER_ID</span>
-            <span className="text-zinc-100 font-bold font-mono">#{orderSuccess.orderId}</span>
+            <span className="font-bold font-mono" style={{ color: 'var(--color-text-primary)' }}>#{orderSuccess.orderId}</span>
           </div>
-          <div className="flex justify-between text-zinc-400">
+          <div className="flex justify-between" style={{ color: 'var(--color-text-muted)' }}>
             <span>METHOD</span>
-            <span className="text-zinc-200">TELEGRAM STARS</span>
+            <span style={{ color: 'var(--color-text-secondary)' }}>TELEGRAM STARS</span>
           </div>
-          <div className="flex justify-between text-zinc-400">
+          <div className="flex justify-between" style={{ color: 'var(--color-text-muted)' }}>
             <span>STATUS</span>
-            <span className="text-emerald-400 font-bold">DELIVERED</span>
+            <span className="text-emerald-500 font-bold">DELIVERED</span>
           </div>
         </div>
 
@@ -162,7 +183,11 @@ export default function App() {
             webApp?.HapticFeedback?.impactOccurred('light');
             setOrderSuccess(null);
           }}
-          className="w-full max-w-xs py-3.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-zinc-100 hover:bg-white text-zinc-950 touch-press transition-all shadow-md"
+          className="w-full max-w-xs py-3.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider touch-press transition-all shadow-md"
+          style={{
+            backgroundColor: 'var(--color-btn-bg)',
+            color: 'var(--color-btn-text)',
+          }}
         >
           Return to Index
         </button>
@@ -171,7 +196,13 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col font-sans antialiased">
+    <div 
+      className="min-h-screen flex flex-col font-sans antialiased transition-colors duration-200"
+      style={{
+        backgroundColor: 'var(--color-canvas)',
+        color: 'var(--color-text-primary)',
+      }}
+    >
       <Header
         user={user}
         searchQuery={searchQuery}
@@ -185,7 +216,7 @@ export default function App() {
       <main className="flex-1 max-w-md w-full mx-auto py-2">
         {loading && (
           <div className="px-4 py-4 flex flex-col gap-3 anim-fade-in">
-            <div className="h-4 w-28 bg-[#141417] rounded-md skeleton-shimmer mb-1" />
+            <div className="h-4 w-28 rounded-md skeleton-shimmer mb-1" />
             <div className="h-16 w-full rounded-full skeleton-shimmer" />
             <div className="h-16 w-full rounded-full skeleton-shimmer" />
             <div className="h-16 w-full rounded-full skeleton-shimmer" />
@@ -193,11 +224,22 @@ export default function App() {
         )}
 
         {error && (
-          <div className="m-4 p-5 rounded-2xl bg-[#141417] border border-white/[0.08] text-center anim-slide-up">
-            <p className="text-xs font-mono text-zinc-400 mb-3">{error}</p>
+          <div 
+            className="m-4 p-5 rounded-2xl border text-center anim-slide-up"
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              borderColor: 'var(--color-border)',
+            }}
+          >
+            <p className="text-xs font-mono mb-3" style={{ color: 'var(--color-text-secondary)' }}>{error}</p>
             <button
               onClick={fetchProducts}
-              className="px-4 py-2 bg-white/[0.08] hover:bg-white/[0.12] text-zinc-200 text-xs font-mono font-bold rounded-lg transition-colors touch-press"
+              className="px-4 py-2 text-xs font-mono font-bold rounded-lg transition-colors touch-press border"
+              style={{
+                backgroundColor: 'var(--color-badge-bg)',
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-text-primary)',
+              }}
             >
               Retry
             </button>

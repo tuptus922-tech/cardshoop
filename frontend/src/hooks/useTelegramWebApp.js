@@ -4,35 +4,60 @@ export function useTelegramWebApp() {
   const [webApp, setWebApp] = useState(null);
   const [user, setUser] = useState(null);
   const [initData, setInitData] = useState('');
+  const [colorScheme, setColorScheme] = useState('dark');
+
+  const applyTheme = (tg) => {
+    const isLight = tg ? tg.colorScheme === 'light' : window.matchMedia('(prefers-color-scheme: light)').matches;
+    const theme = isLight ? 'light' : 'dark';
+    setColorScheme(theme);
+
+    const root = document.documentElement;
+    if (theme === 'light') {
+      root.classList.add('theme-light');
+      root.classList.remove('theme-dark');
+    } else {
+      root.classList.add('theme-dark');
+      root.classList.remove('theme-light');
+    }
+
+    // Set Telegram header and background colors
+    if (tg) {
+      tg.setHeaderColor(isLight ? '#f8fafc' : '#09090b');
+      tg.setBackgroundColor(isLight ? '#f8fafc' : '#09090b');
+    }
+  };
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
+
     if (tg) {
       tg.ready();
       tg.expand();
-      // Ustaw kolor przycisku glownego
-      tg.MainButton.setParams({
-        text: 'KUPUJ',
-        color: tg.themeParams.button_color || '#5288c1',
-        text_color: tg.themeParams.button_text_color || '#ffffff',
-      });
-      // Synchronizuj kolory CSS z motywem Telegram
-      if (tg.themeParams) {
-        const params = tg.themeParams;
-        const root = document.documentElement;
-        if (params.bg_color) root.style.setProperty('--tg-theme-bg-color', params.bg_color);
-        if (params.text_color) root.style.setProperty('--tg-theme-text-color', params.text_color);
-        if (params.hint_color) root.style.setProperty('--tg-theme-hint-color', params.hint_color);
-        if (params.link_color) root.style.setProperty('--tg-theme-link-color', params.link_color);
-        if (params.button_color) root.style.setProperty('--tg-theme-button-color', params.button_color);
-        if (params.button_text_color) root.style.setProperty('--tg-theme-button-text-color', params.button_text_color);
-        if (params.secondary_bg_color) root.style.setProperty('--tg-theme-secondary-bg-color', params.secondary_bg_color);
-      }
+
+      applyTheme(tg);
+
+      const handleThemeChange = () => {
+        applyTheme(tg);
+      };
+
+      tg.onEvent('themeChanged', handleThemeChange);
+
       setWebApp(tg);
       setUser(tg.initDataUnsafe?.user || null);
       setInitData(tg.initData || '');
+
+      return () => {
+        tg.offEvent('themeChanged', handleThemeChange);
+      };
+    } else {
+      // Fallback for browser
+      applyTheme(null);
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+      const handleMediaChange = () => applyTheme(null);
+      mediaQuery.addEventListener('change', handleMediaChange);
+      return () => mediaQuery.removeEventListener('change', handleMediaChange);
     }
   }, []);
 
-  return { webApp, user, initData };
+  return { webApp, user, initData, colorScheme };
 }

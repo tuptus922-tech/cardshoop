@@ -17,7 +17,7 @@ app.use(cors({
   methods: ['GET', 'POST'],
 }));
 
-// Webhook for Telegraf - MUST be registered like this in Express:
+// Webhook for Telegraf
 const WEBHOOK_PATH = '/webhook';
 app.use(bot.webhookCallback(WEBHOOK_PATH, {
   secretToken: process.env.WEBHOOK_SECRET,
@@ -42,6 +42,23 @@ async function start() {
     await runMigrations();
     app.listen(PORT, async () => {
       console.log('[Server] Serwer uruchomiony na porcie ' + PORT);
+
+      // Automatyczne ustawienie stalego przycisku [Open] obok pola wpisywania
+      if (process.env.FRONTEND_URL) {
+        try {
+          await bot.telegram.setChatMenuButton({
+            menu_button: {
+              type: 'web_app',
+              text: 'Open',
+              web_app: { url: process.env.FRONTEND_URL },
+            },
+          });
+          console.log('[Bot] Przycisk Menu [Open] ustawiony pomyslnie');
+        } catch (err) {
+          console.error('[Bot] Blad setChatMenuButton:', err.message);
+        }
+      }
+
       if (process.env.WEBHOOK_URL) {
         const webhookUrl = process.env.WEBHOOK_URL + WEBHOOK_PATH;
         await bot.telegram.setWebhook(webhookUrl, { secret_token: process.env.WEBHOOK_SECRET });

@@ -3,16 +3,49 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  :root,
+  .theme-dark {
     --color-canvas: #09090b;
+    --color-header-bg: rgba(9, 9, 11, 0.85);
     --color-surface: #121215;
     --color-surface-hover: #18181c;
     --color-surface-active: #1e1e23;
     --color-border: rgba(255, 255, 255, 0.08);
-    --color-border-subtle: rgba(255, 255, 255, 0.04);
+    --color-border-hover: rgba(255, 255, 255, 0.16);
     --color-text-primary: #f4f4f5;
     --color-text-secondary: #a1a1aa;
     --color-text-muted: #71717a;
+    --color-badge-bg: rgba(255, 255, 255, 0.06);
+    --color-icon-bg: #09090b;
+    --color-btn-bg: #f4f4f5;
+    --color-btn-hover: #ffffff;
+    --color-btn-text: #09090b;
+    --color-modal-bg: #111114;
+    --color-modal-item: #09090b;
+    --color-skeleton-1: #121215;
+    --color-skeleton-2: #1c1c22;
+  }
+
+  .theme-light {
+    --color-canvas: #f8fafc;
+    --color-header-bg: rgba(248, 250, 252, 0.85);
+    --color-surface: #ffffff;
+    --color-surface-hover: #f1f5f9;
+    --color-surface-active: #e2e8f0;
+    --color-border: rgba(0, 0, 0, 0.08);
+    --color-border-hover: rgba(0, 0, 0, 0.16);
+    --color-text-primary: #09090b;
+    --color-text-secondary: #475569;
+    --color-text-muted: #94a3b8;
+    --color-badge-bg: rgba(0, 0, 0, 0.05);
+    --color-icon-bg: #f1f5f9;
+    --color-btn-bg: #09090b;
+    --color-btn-hover: #18181b;
+    --color-btn-text: #ffffff;
+    --color-modal-bg: #ffffff;
+    --color-modal-item: #f8fafc;
+    --color-skeleton-1: #f1f5f9;
+    --color-skeleton-2: #e2e8f0;
   }
 
   body {
@@ -26,19 +59,15 @@
     -webkit-tap-highlight-color: transparent;
     user-select: none;
     overflow-x: hidden;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 
   * {
     box-sizing: border-box;
-    border-color: var(--color-border);
   }
 }
 
-/* Swiss Minimal Utilities */
-.swiss-border {
-  border: 1px solid var(--color-border);
-}
-
+/* Swiss Adaptive Styles */
 .swiss-card {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -51,14 +80,14 @@
 
 .swiss-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.16);
-  background-color: #17171b;
-  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+  border-color: var(--color-border-hover);
+  background-color: var(--color-surface-hover);
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.12);
 }
 
 .swiss-card:active {
   transform: scale(0.975);
-  background-color: #1a1a20;
+  background-color: var(--color-surface-active);
 }
 
 .swiss-pill {
@@ -72,8 +101,8 @@
 }
 
 .swiss-pill:hover {
-  border-color: rgba(255, 255, 255, 0.16);
-  background-color: #18181c;
+  border-color: var(--color-border-hover);
+  background-color: var(--color-surface-hover);
   transform: translateY(-1px);
 }
 
@@ -93,12 +122,8 @@
 
 /* Keyframe Animations */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes fadeSlideUp {
@@ -137,25 +162,11 @@
   }
 }
 
-@keyframes pulseGlow {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-/* Animation utility classes */
 .anim-fade-in {
   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -173,7 +184,7 @@
 }
 
 .skeleton-shimmer {
-  background: linear-gradient(90deg, #121215 25%, #1c1c22 50%, #121215 75%);
+  background: linear-gradient(90deg, var(--color-skeleton-1) 25%, var(--color-skeleton-2) 50%, var(--color-skeleton-1) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }

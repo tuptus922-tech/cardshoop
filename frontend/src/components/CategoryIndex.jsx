@@ -38,24 +38,28 @@ export default function CategoryIndex({ categories, products, onSelectCategory, 
     <div className="px-4 py-3 flex flex-col gap-3 max-w-md mx-auto anim-fade-in">
       {/* Index Masthead Title */}
       <div className="flex items-center justify-between px-1 mb-0.5">
-        <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 font-semibold">
+        <span 
+          className="text-[11px] font-mono uppercase tracking-widest font-semibold"
+          style={{ color: 'var(--color-text-muted)' }}
+        >
           Platform Index
         </span>
         <button
           onClick={onSelectAll}
-          className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 hover:text-zinc-200 transition-colors touch-press"
+          className="text-[11px] font-mono uppercase tracking-wider hover:opacity-80 transition-opacity touch-press"
+          style={{ color: 'var(--color-text-secondary)' }}
         >
           View All ({products.length}) →
         </button>
       </div>
 
-      {/* Brand Action Pills Stack with staggered fluid entrance */}
+      {/* Brand Action Pills Stack */}
       {categories.map((cat, index) => {
         const meta = BRAND_META[cat] || {
           name: cat,
           subtext: 'Subscription License',
           tokenColor: '#71717a',
-          icon: <IconPackage className="w-6 h-6 text-zinc-400" />,
+          icon: <IconPackage className="w-6 h-6" style={{ color: 'var(--color-text-muted)' }} />,
         };
         const count = categoryCounts[cat] || 0;
 
@@ -63,27 +67,50 @@ export default function CategoryIndex({ categories, products, onSelectCategory, 
           <button
             key={cat}
             onClick={() => onSelectCategory(cat)}
-            style={{ animationDelay: `${index * 50}ms` }}
-            className="w-full flex items-center justify-between px-5 py-4 rounded-full bg-[#121215] border border-white/[0.08] hover:border-white/[0.18] hover:bg-[#18181c] touch-press transition-all duration-150 group shadow-sm text-left anim-slide-up"
+            style={{ 
+              animationDelay: `${index * 50}ms`,
+              backgroundColor: 'var(--color-surface)',
+              borderColor: 'var(--color-border)',
+            }}
+            className="w-full flex items-center justify-between px-5 py-4 rounded-full border hover:scale-[1.005] touch-press transition-all duration-150 group shadow-sm text-left anim-slide-up"
           >
             {/* Left Typography Anchor */}
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-base font-bold tracking-tight text-zinc-100 group-hover:text-white transition-colors">
+                <span 
+                  className="text-base font-bold tracking-tight transition-colors"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
                   {meta.name}
                 </span>
-                <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-white/[0.06] text-zinc-400 border border-white/[0.04]">
+                <span 
+                  className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full border"
+                  style={{ 
+                    backgroundColor: 'var(--color-badge-bg)',
+                    color: 'var(--color-text-muted)',
+                    borderColor: 'var(--color-border)',
+                  }}
+                >
                   {count} {count === 1 ? 'tier' : 'tiers'}
                 </span>
               </div>
-              <span className="text-[11px] text-zinc-500 font-normal tracking-normal mt-0.5">
+              <span 
+                className="text-[11px] font-normal tracking-normal mt-0.5"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
                 {meta.subtext}
               </span>
             </div>
 
             {/* Trailing Brand Emblem */}
             <div className="flex items-center gap-3 pl-3">
-              <div className="w-9 h-9 rounded-full bg-[#09090b] border border-white/[0.06] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+              <div 
+                className="w-9 h-9 rounded-full border flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200"
+                style={{
+                  backgroundColor: 'var(--color-icon-bg)',
+                  borderColor: 'var(--color-border)',
+                }}
+              >
                 {meta.icon}
               </div>
             </div>
