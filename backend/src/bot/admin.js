@@ -31,6 +31,72 @@ async function handleSeed(ctx) {
   }
 }
 
+// /kit - Dodanie zestawu kont we wszystkich wariantach z losowymi cenami
+async function handleKit(ctx) {
+  if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnień.');
+  try {
+    await seedProductsIfEmpty();
+    const products = await helpers.getAllProducts();
+    let totalAccountsAdded = 0;
+
+    const randomDomains = ['gmail.com', 'outlook.com', 'proton.me', 'icloud.com'];
+    const randomPrefixes = ['premium.user', 'cardshoop.vip', 'sub.access', 'digital.pass', 'pro.account', 'member.vault'];
+
+    for (const product of products) {
+      // Losowa cena Stars w zaleznosci od kategorii i dlugosci okresu
+      let baseMin = 60, baseMax = 220;
+      if (product.category === 'Netflix') { baseMin = 120; baseMax = 360; }
+      else if (product.category === 'Discord') { baseMin = 140; baseMax = 450; }
+      else if (product.category === 'Spotify') { baseMin = 70; baseMax = 260; }
+      else if (product.category === 'YouTube') { baseMin = 80; baseMax = 200; }
+
+      // Jesli rok - wieksza cena
+      if (product.name.includes('Rok')) {
+        baseMin = 800;
+        baseMax = 1600;
+      }
+
+      const randomPrice = Math.floor(Math.random() * (baseMax - baseMin + 1)) + baseMin;
+      await helpers.updateProductPrice(product.id, randomPrice);
+
+      // Wygeneruj 2-3 losowe konta dla kazdego wariantu
+      const accountsToGenerate = Math.floor(Math.random() * 2) + 2; // 2 lub 3 konta
+      for (let i = 0; i < accountsToGenerate; i++) {
+        const prefix = randomPrefixes[Math.floor(Math.random() * randomPrefixes.length)];
+        const randomNum = Math.floor(Math.random() * 8999) + 1000;
+        const domain = randomDomains[Math.floor(Math.random() * randomDomains.length)];
+        const email = `${prefix}.${randomNum}@${domain}`;
+        const passChars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+        let pass = '';
+        for (let p = 0; p < 12; p++) pass += passChars.charAt(Math.floor(Math.random() * passChars.length));
+
+        const creds = JSON.stringify({
+          email,
+          password: pass,
+          note: `Wariant: ${product.name} | Gwarancja braku limitów`,
+        });
+
+        await helpers.addAccount(product.id, helpers.encrypt(creds));
+        totalAccountsAdded++;
+      }
+    }
+
+    const inStock = await helpers.getInStockProducts();
+    let summary = '🎁 <b>Zestaw /kit załadowany pomyślnie!</b>\n\n';
+    summary += `✅ Wygenerowano i zaszyfrowano <b>${totalAccountsAdded} kont</b> we wszystkich wariantach produktowych.\n\n`;
+    summary += '📋 <b>Aktualny stan magazynu i nowe losowe ceny:</b>\n\n';
+    for (const p of inStock) {
+      summary += `• <b>${escapeHtml(p.name)}</b>: <code>${p.price_stars} Stars</code> (${p.stock} szt. w magazynie)\n`;
+    }
+    summary += '\n🛒 <i>Sklep w Mini App zawiera teraz wszystkie platformy i warianty!</i>';
+
+    await ctx.reply(summary, { parse_mode: 'HTML' });
+  } catch (err) {
+    console.error('[Admin/kit]', err);
+    await ctx.reply('Błąd wykonania /kit: ' + err.message);
+  }
+}
+
 // /price - Zmiana ceny produktu
 async function handlePrice(ctx) {
   if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnień.');
@@ -339,6 +405,7 @@ async function handleAdminHelp(ctx) {
   if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnien.');
   await ctx.reply(
     '🛠 <b>Panel Admina CardShoop</b>\n\n' +
+    '/kit - Wygeneruj zestaw kont we wszystkich wariantach z losowymi cenami\n' +
     '/price - Zmień cenę produktu (w Stars)\n' +
     '/stock - Stan magazynu (dostępne konta)\n' +
     '/addaccount - Dodaj nowe konto do bazy\n' +
@@ -353,6 +420,7 @@ async function handleAdminHelp(ctx) {
 
 module.exports = {
   isAdmin,
+  handleKit,
   handlePrice,
   handlePriceCallback,
   handleDelAccount,

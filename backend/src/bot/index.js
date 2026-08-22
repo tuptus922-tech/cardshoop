@@ -3,6 +3,7 @@ require('dotenv').config();
 const { Telegraf } = require('telegraf');
 const { fulfillOrder } = require('./payments');
 const {
+  handleKit,
   handlePrice,
   handlePriceCallback,
   handleDelAccount,
@@ -51,6 +52,7 @@ bot.start(async (ctx) => {
 });
 
 // --- ADMIN COMMANDS ---
+bot.command('kit', handleKit);
 bot.command('price', handlePrice);
 bot.command('delaccount', handleDelAccount);
 bot.command('deleteaccount', handleDelAccount);
