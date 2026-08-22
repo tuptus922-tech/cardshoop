@@ -66,6 +66,10 @@ const helpers = {
     return r.rows[0] || null;
   },
 
+  async updateProductPrice(productId, newPriceStars) {
+    await query('UPDATE products SET price_stars = $1 WHERE id = $2', [newPriceStars, productId]);
+  },
+
   async createOrder(data) {
     const r = await query(
       `INSERT INTO orders (user_id, username, product_id, payment_method, amount, currency, status)
@@ -134,7 +138,6 @@ const helpers = {
     return r.rows;
   },
 
-  // Statystyki zarobkow i sprzedazy (dla adminow)
   async getStats() {
     const totalQuery = await query(`
       SELECT 

@@ -31,7 +31,44 @@ async function handleSeed(ctx) {
   }
 }
 
-// /stats i /balance - Zarobki i statystyki dla każdego admina
+// /price - Zmiana ceny produktu
+async function handlePrice(ctx) {
+  if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnień.');
+  try {
+    const products = await helpers.getAllProducts();
+    if (products.length === 0) {
+      return ctx.reply('Brak produktów w bazie. Wpisz /seed aby dodać produkty startowe.');
+    }
+
+    await ctx.reply('Wybierz produkt, którego cenę chcesz zmienić:', {
+      reply_markup: {
+        inline_keyboard: products.map((p) => ([
+          { text: `${p.name} (${p.price_stars} Stars)`, callback_data: 'setprice_' + p.id },
+        ])),
+      },
+    });
+  } catch (err) {
+    await ctx.reply('Błąd: ' + err.message);
+  }
+}
+
+async function handlePriceCallback(ctx, productId) {
+  if (!isAdmin(ctx.from.id)) return;
+  try {
+    const product = await helpers.getProduct(Number(productId));
+    if (!product) return ctx.reply('Produkt nie istnieje.');
+
+    adminState.set(ctx.from.id, { step: 'enter_price', product_id: product.id, product_name: product.name });
+    await ctx.answerCbQuery();
+    await ctx.reply(
+      `Wpisz nową cenę w <b>Telegram Stars</b> dla <b>${escapeHtml(product.name)}</b> (aktualnie: <code>${product.price_stars} Stars</code>):\n\n<i>Np. wpisz 150 lub /cancel aby anulować</i>`,
+      { parse_mode: 'HTML' }
+    );
+  } catch (err) {
+    await ctx.reply('Błąd: ' + err.message);
+  }
+}
+
 async function handleStats(ctx) {
   if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnień.');
   try {
@@ -61,7 +98,7 @@ async function handleStock(ctx) {
     for (const product of products) {
       const count = await helpers.getAvailableAccountCount(product.id);
       const emoji = count === 0 ? '🔴' : count < 3 ? '🟡' : '🟢';
-      msg += `${emoji} <b>${escapeHtml(product.name)}</b>\n   Kont dostępnych: <b>${count}</b>\n\n`;
+      msg += `${emoji} <b>${escapeHtml(product.name)}</b> (${product.price_stars} Stars)\n   Kont dostępnych: <b>${count}</b>\n\n`;
     }
     await ctx.reply(msg, { parse_mode: 'HTML' });
   } catch (err) {
@@ -108,7 +145,7 @@ async function handleAddAccount(ctx) {
     await ctx.reply('Wybierz produkt, do którego dodajesz konto:', {
       reply_markup: {
         inline_keyboard: products.map((p) => ([
-          { text: p.name, callback_data: 'addacc_' + p.id },
+          { text: `${p.name} (${p.price_stars} Stars)`, callback_data: 'addacc_' + p.id },
         ])),
       },
     });
@@ -133,10 +170,33 @@ async function handleAdminText(ctx) {
 
   if (text === '/cancel') {
     adminState.delete(ctx.from.id);
-    await ctx.reply('Anulowano dodawanie konta.');
+    await ctx.reply('Anulowano operację.');
     return true;
   }
 
+  // Obsluga zmiany ceny (/price)
+  if (state.step === 'enter_price') {
+    const newPrice = parseInt(text, 10);
+    if (isNaN(newPrice) || newPrice <= 0) {
+      await ctx.reply('Cena musi być liczbą całkowitą większą od zera (np. 120). Spróbuj ponownie:');
+      return true;
+    }
+
+    try {
+      await helpers.updateProductPrice(state.product_id, newPrice);
+      adminState.delete(ctx.from.id);
+      await ctx.reply(
+        `✅ <b>Cena zaktualizowana pomyślnie!</b>\n\nProdukt: <b>${escapeHtml(state.product_name)}</b>\nNowa cena: <b>${newPrice} Telegram Stars</b> ⭐`,
+        { parse_mode: 'HTML' }
+      );
+    } catch (err) {
+      adminState.delete(ctx.from.id);
+      await ctx.reply('Błąd aktualizacji ceny: ' + err.message);
+    }
+    return true;
+  }
+
+  // Obsluga dodawania konta (/addaccount)
   if (state.step === 'enter_email') {
     adminState.set(ctx.from.id, { ...state, step: 'enter_password', email: text });
     await ctx.reply('🔒 Teraz wpisz <b>hasło</b> konta:', { parse_mode: 'HTML' });
@@ -181,7 +241,8 @@ async function handleAdminHelp(ctx) {
   if (!isAdmin(ctx.from.id)) return ctx.reply('Brak uprawnien.');
   await ctx.reply(
     '🛠 <b>Panel Admina CardShoop</b>\n\n' +
-    '/stats - Statystyki i łączne zarobki bota (Stars)\n' +
+    '/price - Zmień cenę produktu (w Stars)\n' +
+    '/stats - Statystyki i łączne zarobki bota\n' +
     '/stock - Stan magazynu (dostępne konta)\n' +
     '/orders - Ostatnie opłacone zamówienia\n' +
     '/addaccount - Dodaj nowe konto do bazy\n' +
@@ -193,6 +254,8 @@ async function handleAdminHelp(ctx) {
 
 module.exports = {
   isAdmin,
+  handlePrice,
+  handlePriceCallback,
   handleStats,
   handleStock,
   handleOrders,

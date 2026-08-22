@@ -3,6 +3,8 @@ require('dotenv').config();
 const { Telegraf } = require('telegraf');
 const { fulfillOrder } = require('./payments');
 const {
+  handlePrice,
+  handlePriceCallback,
   handleStats,
   handleStock,
   handleOrders,
@@ -33,6 +35,7 @@ bot.start(async (ctx) => {
 });
 
 // --- ADMIN COMMANDS ---
+bot.command('price', handlePrice);
 bot.command('stats', handleStats);
 bot.command('balance', handleStats);
 bot.command('addaccount', handleAddAccount);
@@ -44,9 +47,14 @@ bot.command('help', handleAdminHelp);
 // --- CALLBACK QUERIES (przyciski) ---
 bot.on('callback_query', async (ctx) => {
   const data = ctx.callbackQuery.data;
-  if (data && data.startsWith('addacc_')) {
+  if (!data) return;
+
+  if (data.startsWith('addacc_')) {
     const productId = data.replace('addacc_', '');
     await handleProductCallback(ctx, productId);
+  } else if (data.startsWith('setprice_')) {
+    const productId = data.replace('setprice_', '');
+    await handlePriceCallback(ctx, productId);
   }
 });
 
