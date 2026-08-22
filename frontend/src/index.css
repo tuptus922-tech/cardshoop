@@ -13,10 +13,6 @@
     --color-text-primary: #f4f4f5;
     --color-text-secondary: #a1a1aa;
     --color-text-muted: #71717a;
-    --brand-spotify: #1DB954;
-    --brand-netflix: #E50914;
-    --brand-youtube: #FF0000;
-    --brand-discord: #5865F2;
   }
 
   body {
@@ -47,27 +43,139 @@
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 20px;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              background-color 0.2s ease, 
+              border-color 0.2s ease, 
+              box-shadow 0.2s ease;
+}
+
+.swiss-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.16);
+  background-color: #17171b;
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+}
+
+.swiss-card:active {
+  transform: scale(0.975);
+  background-color: #1a1a20;
 }
 
 .swiss-pill {
   border-radius: 9999px;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  transition: transform 0.1s ease, opacity 0.1s ease, background-color 0.15s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              opacity 0.15s ease, 
+              background-color 0.15s ease,
+              border-color 0.15s ease;
+}
+
+.swiss-pill:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background-color: #18181c;
+  transform: translateY(-1px);
 }
 
 .swiss-pill:active {
   opacity: 0.92;
-  transform: scale(0.99);
+  transform: scale(0.985);
 }
 
 .touch-press {
-  transition: opacity 0.1s linear, transform 0.1s ease;
+  transition: opacity 0.12s cubic-bezier(0.4, 0, 0.2, 1), transform 0.12s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .touch-press:active {
-  opacity: 0.92;
-  transform: scale(0.985);
+  opacity: 0.88;
+  transform: scale(0.965);
+}
+
+/* Keyframe Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modalSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  70% {
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Animation utility classes */
+.anim-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.anim-slide-up {
+  animation: fadeSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.anim-modal-up {
+  animation: modalSlideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.anim-pop-in {
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #121215 25%, #1c1c22 50%, #121215 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }
 
 .no-scrollbar::-webkit-scrollbar {

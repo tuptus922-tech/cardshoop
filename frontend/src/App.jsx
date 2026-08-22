@@ -3,7 +3,7 @@ import Header from './components/Header.jsx';
 import CategoryIndex from './components/CategoryIndex.jsx';
 import ProductList from './components/ProductList.jsx';
 import PaymentModal from './components/PaymentModal.jsx';
-import { IconCheck, IconStar } from './components/Icons.jsx';
+import { IconCheck } from './components/Icons.jsx';
 import { useTelegramWebApp } from './hooks/useTelegramWebApp.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://cardshoop.onrender.com/api';
@@ -16,7 +16,7 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [orderSuccess, setOrderSuccess] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState(null); // null = Screen 1 (Index), string = Screen 2 (Matrix)
+  const [activeCategory, setActiveCategory] = useState(null);
 
   // Fetch products
   const fetchProducts = async () => {
@@ -42,7 +42,6 @@ export default function App() {
     fetchProducts();
   }, []);
 
-  // Distinct category list from in-stock products
   const categories = useMemo(() => {
     return Array.from(new Set(products.map((p) => p.category).filter(Boolean)));
   }, [products]);
@@ -129,9 +128,9 @@ export default function App() {
   // Success Confirmation View
   if (orderSuccess) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center p-6 text-center text-zinc-100 font-sans select-none">
-        <div className="w-14 h-14 rounded-2xl bg-white/[0.06] border border-white/[0.12] flex items-center justify-center text-emerald-400 mb-4">
-          <IconCheck className="w-7 h-7" />
+      <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center p-6 text-center text-zinc-100 font-sans select-none anim-fade-in">
+        <div className="w-16 h-16 rounded-3xl bg-white/[0.06] border border-white/[0.14] flex items-center justify-center text-emerald-400 mb-4 anim-pop-in shadow-lg">
+          <IconCheck className="w-8 h-8" />
         </div>
         <span className="text-[10px] font-mono font-bold tracking-widest text-emerald-400 uppercase mb-1">
           TRANSACTION FULFILLED
@@ -143,10 +142,10 @@ export default function App() {
           Credentials for <span className="text-zinc-200 font-bold">{orderSuccess.productName}</span> have been sent to your Telegram chat.
         </p>
 
-        <div className="bg-[#121215] border border-white/[0.08] rounded-xl p-4 w-full max-w-xs mb-6 text-xs font-mono text-left space-y-2">
+        <div className="bg-[#121215] border border-white/[0.08] rounded-2xl p-4 w-full max-w-xs mb-6 text-xs font-mono text-left space-y-2.5 anim-slide-up">
           <div className="flex justify-between text-zinc-400">
             <span>ORDER_ID</span>
-            <span className="text-zinc-100 font-bold">#{orderSuccess.orderId}</span>
+            <span className="text-zinc-100 font-bold font-mono">#{orderSuccess.orderId}</span>
           </div>
           <div className="flex justify-between text-zinc-400">
             <span>METHOD</span>
@@ -163,7 +162,7 @@ export default function App() {
             webApp?.HapticFeedback?.impactOccurred('light');
             setOrderSuccess(null);
           }}
-          className="w-full max-w-xs py-3 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-zinc-100 hover:bg-white text-zinc-950 touch-press transition-all shadow-sm"
+          className="w-full max-w-xs py-3.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-zinc-100 hover:bg-white text-zinc-950 touch-press transition-all shadow-md"
         >
           Return to Index
         </button>
@@ -185,20 +184,20 @@ export default function App() {
 
       <main className="flex-1 max-w-md w-full mx-auto py-2">
         {loading && (
-          <div className="flex flex-col justify-center items-center h-64 gap-3">
-            <div className="w-8 h-8 border-2 border-white/10 border-t-white rounded-full animate-spin" />
-            <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
-              Connecting...
-            </span>
+          <div className="px-4 py-4 flex flex-col gap-3 anim-fade-in">
+            <div className="h-4 w-28 bg-[#141417] rounded-md skeleton-shimmer mb-1" />
+            <div className="h-16 w-full rounded-full skeleton-shimmer" />
+            <div className="h-16 w-full rounded-full skeleton-shimmer" />
+            <div className="h-16 w-full rounded-full skeleton-shimmer" />
           </div>
         )}
 
         {error && (
-          <div className="m-4 p-5 rounded-2xl bg-[#141417] border border-white/[0.08] text-center">
+          <div className="m-4 p-5 rounded-2xl bg-[#141417] border border-white/[0.08] text-center anim-slide-up">
             <p className="text-xs font-mono text-zinc-400 mb-3">{error}</p>
             <button
               onClick={fetchProducts}
-              className="px-4 py-2 bg-white/[0.08] hover:bg-white/[0.12] text-zinc-200 text-xs font-mono font-bold rounded-lg transition-colors"
+              className="px-4 py-2 bg-white/[0.08] hover:bg-white/[0.12] text-zinc-200 text-xs font-mono font-bold rounded-lg transition-colors touch-press"
             >
               Retry
             </button>
@@ -207,7 +206,6 @@ export default function App() {
 
         {!loading && !error && (
           <>
-            {/* Screen 1: Category & Platform Index (when no category is selected and no search) */}
             {!activeCategory && !searchQuery ? (
               <CategoryIndex
                 categories={categories}
@@ -216,7 +214,6 @@ export default function App() {
                 onSelectAll={handleSelectAll}
               />
             ) : (
-              /* Screen 2: Product & Tier Matrix */
               <ProductList
                 products={products}
                 onSelect={handleSelectProduct}

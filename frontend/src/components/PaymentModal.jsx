@@ -33,16 +33,16 @@ export default function PaymentModal({ product, onClose, onBuyStars }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md anim-fade-in transition-all"
       onClick={(e) => {
         if (e.target === e.currentTarget && !loading) onClose();
       }}
     >
       <div
-        className="w-full max-w-md bg-[#111114] border-t sm:border border-white/[0.1] rounded-t-[28px] sm:rounded-[24px] p-6 text-zinc-100 flex flex-col max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl"
+        className="w-full max-w-md bg-[#111114] border-t sm:border border-white/[0.12] rounded-t-[28px] sm:rounded-[24px] p-6 text-zinc-100 flex flex-col max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl anim-modal-up"
       >
         {/* Mobile Pull Bar */}
-        <div className="w-10 h-1 bg-white/[0.12] rounded-full mx-auto mb-5 sm:hidden" />
+        <div className="w-10 h-1 bg-white/[0.16] rounded-full mx-auto mb-5 sm:hidden" />
 
         {/* Header with Brand Icon and Title */}
         <div className="flex items-start justify-between mb-5">
@@ -63,7 +63,7 @@ export default function PaymentModal({ product, onClose, onBuyStars }) {
           <button
             onClick={onClose}
             disabled={loading}
-            className="w-7 h-7 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-zinc-400 hover:text-white flex items-center justify-center text-xs transition-colors"
+            className="w-7 h-7 rounded-full bg-white/[0.06] hover:bg-white/[0.14] text-zinc-400 hover:text-white flex items-center justify-center text-xs transition-colors touch-press"
           >
             <IconClose className="w-3.5 h-3.5" />
           </button>
@@ -110,7 +110,7 @@ export default function PaymentModal({ product, onClose, onBuyStars }) {
         <button
           onClick={handlePay}
           disabled={loading}
-          className="w-full py-3.5 px-4 rounded-xl font-mono font-bold text-xs uppercase tracking-wider bg-zinc-100 hover:bg-white text-zinc-950 touch-press transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-3 shadow-sm"
+          className="w-full py-3.5 px-4 rounded-xl font-mono font-bold text-xs uppercase tracking-wider bg-zinc-100 hover:bg-white text-zinc-950 touch-press transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-3 shadow-md"
         >
           {loading ? (
             <div className="w-4 h-4 border-2 border-zinc-950/30 border-t-zinc-950 rounded-full animate-spin" />

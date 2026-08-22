@@ -9,33 +9,33 @@ const BRAND_ICONS = {
   default: <IconPackage className="w-6 h-6 text-zinc-400" />,
 };
 
-export default function ProductCard({ product, onSelect }) {
+export default function ProductCard({ product, onSelect, index = 0 }) {
   const brandIcon = BRAND_ICONS[product.category] || BRAND_ICONS.default;
 
-  // Extract period if present (e.g. 1M, 3M, 6M, 1 Rok)
   const matchPeriod = product.name.match(/\b(\d+[MYDmyd]|Miesiąc|Miesiące|Miesięcy|Rok)\b/i);
   const period = matchPeriod ? matchPeriod[0].toUpperCase() : null;
 
   return (
     <div
       onClick={() => onSelect(product)}
-      className="swiss-card p-3.5 flex flex-col justify-between hover:bg-[#16161a] hover:border-white/[0.14] touch-press transition-all duration-100 cursor-pointer group select-none"
+      style={{ animationDelay: `${index * 40}ms` }}
+      className="swiss-card p-3.5 flex flex-col justify-between cursor-pointer group select-none anim-slide-up"
     >
       {/* Top Section: Brand Emblem & Duration Indicator */}
       <div>
         <div className="flex items-start justify-between mb-3">
-          <div className="w-9 h-9 rounded-xl bg-[#09090b] border border-white/[0.08] flex items-center justify-center p-1.5 flex-shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-[#09090b] border border-white/[0.08] flex items-center justify-center p-1.5 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
             {brandIcon}
           </div>
           {period && (
-            <span className="text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded-md bg-white/[0.06] text-zinc-300 border border-white/[0.04]">
+            <span className="text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded-md bg-white/[0.06] text-zinc-300 border border-white/[0.04] group-hover:border-white/[0.12] transition-colors">
               {period}
             </span>
           )}
         </div>
 
         {/* Title */}
-        <h3 className="font-semibold text-xs text-zinc-100 group-hover:text-white tracking-tight leading-snug line-clamp-2 mb-1">
+        <h3 className="font-semibold text-xs text-zinc-100 group-hover:text-white tracking-tight leading-snug line-clamp-2 mb-1 transition-colors">
           {product.name}
         </h3>
 
@@ -59,7 +59,7 @@ export default function ProductCard({ product, onSelect }) {
             e.stopPropagation();
             onSelect(product);
           }}
-          className="px-3 py-1.5 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 text-[11px] font-bold tracking-tight touch-press transition-all shadow-sm flex items-center gap-1"
+          className="px-3 py-1.5 rounded-xl bg-zinc-100 group-hover:bg-white text-zinc-950 text-[11px] font-bold tracking-tight touch-press transition-all shadow-sm flex items-center gap-1"
         >
           <span>Buy</span>
         </button>
