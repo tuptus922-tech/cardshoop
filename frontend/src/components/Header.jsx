@@ -22,20 +22,20 @@ export default function Header({ user, searchQuery, onSearchChange, onLogoClick 
     >
       {/* Masthead Row */}
       <div className="flex items-center justify-between mb-2.5">
-        {/* Brand Anchor */}
+        {/* Brand Anchor with Generated Logo */}
         <button
           onClick={onLogoClick}
-          className="flex items-center gap-2 text-left touch-press group"
+          className="flex items-center gap-2.5 text-left touch-press group"
         >
-          <div 
-            className="w-6 h-6 rounded-md flex items-center justify-center font-mono font-black text-xs transition-colors shadow-sm"
-            style={{
-              backgroundColor: 'var(--color-btn-bg)',
-              color: 'var(--color-btn-text)',
+          <img 
+            src="./assets/logo.png" 
+            alt="CardShoop Logo" 
+            className="w-7 h-7 rounded-lg object-cover border shadow-sm group-hover:scale-105 transition-transform duration-200"
+            style={{ borderColor: 'var(--color-border)' }}
+            onError={(e) => {
+              e.target.style.display = 'none';
             }}
-          >
-            C
-          </div>
+          />
           <span 
             className="font-mono text-xs font-black tracking-widest uppercase transition-colors"
             style={{ color: 'var(--color-text-primary)' }}
