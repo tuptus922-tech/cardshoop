@@ -21,16 +21,28 @@ const {
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 // --- START ---
 bot.start(async (ctx) => {
-  const firstName = (ctx.from && ctx.from.first_name) || 'uzytkownik';
+  const from = ctx.from || {};
+  const displayName = from.username
+    ? '@' + from.username
+    : `${from.first_name || ''} ${from.last_name || ''}`.trim() || 'użytkowniku';
+
   await ctx.reply(
-    '👋 Czesc, *' + firstName + '*!\n\nWitaj w *CardShoop* - sklepie z dostepami do kont premium.\n\nNacisnij przycisk ponizej, aby otworzyc sklep 🛒',
+    `👋 Cześć, <b>${escapeHtml(displayName)}</b>!\n\nWitaj w <b>CardShoop</b> – sklepie z dostępami do kont premium.\n\nNaciśnij przycisk poniżej, aby otworzyć sklep 🛒`,
     {
-      parse_mode: 'Markdown',
+      parse_mode: 'HTML',
       reply_markup: {
         inline_keyboard: [[{
-          text: '🛒 Otworz Sklep',
+          text: '🛒 Otwórz Sklep',
           web_app: { url: process.env.FRONTEND_URL },
         }]],
       },
