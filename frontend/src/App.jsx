@@ -36,10 +36,11 @@ export default function App() {
     try {
       const res = await fetch(`${API_BASE}/products`);
       const data = await res.json();
-      if (data.ok && Array.isArray(data.result)) {
-        setProducts(data.result);
+      const items = Array.isArray(data.result) ? data.result : (Array.isArray(data.products) ? data.products : null);
+      if (data.ok && items) {
+        setProducts(items);
         try {
-          sessionStorage.setItem('cs_products_cache', JSON.stringify(data.result));
+          sessionStorage.setItem('cs_products_cache', JSON.stringify(items));
         } catch {}
       } else if (!isSilent) {
         setError('Failed to retrieve inventory matrix.');
